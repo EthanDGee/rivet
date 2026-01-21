@@ -31,13 +31,7 @@ pub struct App {
 
 impl App {
     pub fn new(sql_path: String) -> Self {
-        let sql_session = match SqlSession::new(sql_path.clone()) {
-            Ok(session) => session,
-            Err(e) => {
-                eprintln!("{}", e);
-                std::process::exit(1);
-            }
-        };
+        let sql_session = SqlSession::new(sql_path.clone());
         App {
             sql_path,
             sql_session,
