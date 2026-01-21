@@ -24,7 +24,7 @@ pub enum Screens {
 
 pub struct App {
     sql_path: String,
-    sql_session: SqlSession,
+    session: SqlSession,
     current_screen: Screens,
     exit: bool,
 }
@@ -34,7 +34,7 @@ impl App {
         let sql_session = SqlSession::new(sql_path.clone());
         App {
             sql_path,
-            sql_session,
+            session: sql_session,
             current_screen: Screens::Main,
             exit: false,
         }
@@ -65,6 +65,7 @@ impl App {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
                 match (key_event.code, key_event.modifiers) {
                     (KeyCode::Char('q'), KeyModifiers::CONTROL) => self.exit(),
+                    (KeyCode::Char('s'), KeyModifiers::CONTROL) => self.session.commit(),
                     _ => {}
                 }
             }

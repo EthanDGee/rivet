@@ -1,4 +1,5 @@
 use sqlite::Connection;
+
 pub struct SqlSession {
     sql_path: String,
     connection: Connection,
@@ -25,5 +26,7 @@ impl SqlSession {
         }
     }
 
-    pub fn commit() {}
+    pub fn commit(&self) {
+        self.connection.execute("COMMIT");
+    }
 }
