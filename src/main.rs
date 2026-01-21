@@ -2,32 +2,28 @@ use std::io;
 
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{
+    DefaultTerminal, Frame,
     buffer::Buffer,
     layout::Rect,
     style::Stylize,
     symbols::border,
     text::{Line, Text},
     widgets::{Block, Paragraph, Widget},
-    DefaultTerminal, Frame,
 };
-
 
 pub const TOOL_NAME: &str = "rust-cli-tool";
 
-
 #[derive(Debug, Default)]
 pub struct App {
-    tool_name : String,
     sqlpath: String,
     exit: bool,
 }
 
 impl App {
-    pub fn new(sqlpath : String) -> Self {
+    pub fn new(sqlpath: String) -> Self {
         App {
-            tool_name: TOOL_NAME.to_string(),
-            sqlpath : sqlpath,
-            exit : false
+            sqlpath,
+            exit: false,
         }
     }
 
@@ -43,7 +39,7 @@ impl App {
     fn draw(&self, frame: &mut Frame) {
         frame.render_widget(self, frame.area());
     }
-    
+
     fn handle_events(&mut self) -> io::Result<()> {
         todo!()
     }
@@ -51,7 +47,7 @@ impl App {
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let title = Line::from(self.tool_name.clone().bold());
+        let title = Line::from(TOOL_NAME.bold());
         let instructions = Line::from(vec![
             " Decrement ".into(),
             "<Left>".blue().bold(),
@@ -75,7 +71,8 @@ impl Widget for &App {
             .block(block)
             .render(area, buf);
     }
-}fn main() -> io::Result<()> {
-    let mut app : App = App::new("test.sqlite3".to_string()); 
+}
+fn main() -> io::Result<()> {
+    let mut app: App = App::new("test.sqlite3".to_string());
     ratatui::run(|terminal| app.run(terminal))
 }
