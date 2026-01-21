@@ -1,3 +1,5 @@
+use crate::constants::TOOL_NAME;
+use crate::sql_session::SqlSession;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{
     DefaultTerminal, Frame,
@@ -8,9 +10,7 @@ use ratatui::{
     text::{Line, Text},
     widgets::{Block, Paragraph, Widget},
 };
-use std::io;
-
-use crate::{app, constants::TOOL_NAME};
+use std::{io, process::exit};
 
 // Handle screen states
 #[derive(Debug, Default)]
@@ -22,17 +22,25 @@ pub enum Screens {
     Exiting,
 }
 
-#[derive(Debug, Default)]
 pub struct App {
-    sqlpath: String,
+    sql_path: String,
+    sql_session: SqlSession,
     current_screen: Screens,
     exit: bool,
 }
 
 impl App {
-    pub fn new(sqlpath: String) -> Self {
+    pub fn new(sql_path: String) -> Self {
+        let sql_session = match SqlSession::new(sql_path.clone()) {
+            Ok(session) => session,
+            Err(e) => {
+                eprintln!("{}", e);
+                std::process::exit(1);
+            }
+        };
         App {
-            sqlpath,
+            sql_path,
+            sql_session,
             current_screen: Screens::Main,
             exit: false,
         }
@@ -88,7 +96,7 @@ impl Widget for &App {
 
         let db_info = Text::from(vec![Line::from(vec![
             "Value: ".into(),
-            self.sqlpath.to_string().yellow(),
+            self.sql_path.to_string().yellow(),
         ])]);
 
         Paragraph::new(db_info)
