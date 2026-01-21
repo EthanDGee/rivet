@@ -1,3 +1,4 @@
+use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use ratatui::{
     DefaultTerminal, Frame,
     buffer::Buffer,
@@ -11,6 +12,7 @@ use std::io;
 
 use crate::constants::TOOL_NAME;
 
+// Handle screen states
 #[derive(Debug, Default)]
 pub enum Screens {
     #[default]
@@ -50,7 +52,23 @@ impl App {
     }
 
     fn handle_events(&mut self) -> io::Result<()> {
-        todo!()
+        match event::read()? {
+            // it's important to check that the event is a key press event as
+            // crossterm also emits key release and repeat events on Windows.
+            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
+                match key_event.code {
+                    KeyCode::Char('q') => self.exit(),
+                    _ => {}
+                }
+            }
+            _ => {}
+        };
+        Ok(())
+    }
+
+    // App Specific Functionality.
+    fn exit(&mut self) {
+        self.exit = true;
     }
 }
 
