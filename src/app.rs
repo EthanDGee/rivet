@@ -12,8 +12,18 @@ use std::io;
 use crate::constants::TOOL_NAME;
 
 #[derive(Debug, Default)]
+pub enum Screens {
+    #[default]
+    Main,
+    Results,
+    Help,
+    Exiting,
+}
+
+#[derive(Debug, Default)]
 pub struct App {
     sqlpath: String,
+    current_screen: Screens,
     exit: bool,
 }
 
@@ -21,6 +31,7 @@ impl App {
     pub fn new(sqlpath: String) -> Self {
         App {
             sqlpath,
+            current_screen: Screens::Main,
             exit: false,
         }
     }
