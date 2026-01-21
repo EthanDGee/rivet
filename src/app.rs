@@ -1,4 +1,4 @@
-use crossterm::event::{self, Event, KeyCode, KeyEventKind};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{
     DefaultTerminal, Frame,
     buffer::Buffer,
@@ -10,7 +10,7 @@ use ratatui::{
 };
 use std::io;
 
-use crate::constants::TOOL_NAME;
+use crate::{app, constants::TOOL_NAME};
 
 // Handle screen states
 #[derive(Debug, Default)]
@@ -43,6 +43,13 @@ impl App {
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
             self.handle_events()?;
+
+            match self.current_screen {
+                Screens::Main => {}
+                Screens::Results => {}
+                Screens::Help => {}
+                Screens::Exiting => {}
+            }
         }
         Ok(())
     }
@@ -53,11 +60,9 @@ impl App {
 
     fn handle_events(&mut self) -> io::Result<()> {
         match event::read()? {
-            // it's important to check that the event is a key press event as
-            // crossterm also emits key release and repeat events on Windows.
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-                match key_event.code {
-                    KeyCode::Char('q') => self.exit(),
+                match (key_event.code, key_event.modifiers) {
+                    (KeyCode::Char('q'), KeyModifiers::CONTROL) => self.exit(),
                     _ => {}
                 }
             }
@@ -75,14 +80,7 @@ impl App {
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let title = Line::from(TOOL_NAME.bold());
-        let instructions = Line::from(vec![
-            " Decrement ".into(),
-            "<Left>".blue().bold(),
-            " Increment ".into(),
-            "<Right>".blue().bold(),
-            " Quit ".into(),
-            "<Q> ".blue().bold(),
-        ]);
+        let instructions = Line::from(vec![" Quit ".into(), "<C-Q> ".blue().bold()]);
         let block = Block::bordered()
             .title(title.centered())
             .title_bottom(instructions.centered())
