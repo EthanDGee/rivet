@@ -1,26 +1,23 @@
-use core::prelude;
-use std::f32::consts::E;
-
 use color_eyre::eyre::{Result, eyre};
-use sqlite::{Connection, Value};
+use rusqlite::{Connection, types::ValueRef};
+
 pub struct SqlSession {
+    #[allow(dead_code)]
     sql_path: String,
     connection: Connection,
     read_only: bool,
 }
 
 impl SqlSession {
-    pub fn new(sql_path: String) -> Self {
+    pub fn new(sql_path: String, read_only: bool) -> Self {
         // attempt to connect to database
         let connection = match Connection::open(&sql_path) {
             Ok(connection) => connection,
             Err(e) => {
-                eprintln!("SqlSession{}", e);
+                eprintln!("SqlSession error: {}", e);
                 std::process::exit(1);
             }
         };
-
-        let read_only: bool = true;
 
         SqlSession {
             sql_path,
@@ -34,30 +31,33 @@ impl SqlSession {
             return Err(eyre!("Empty Query"));
         }
 
-        let mut statement = match self.connection.prepare(query) {
+        let mut statement = match self.connection.prepare(&query) {
             Ok(statement) => statement,
             Err(e) => {
                 return Err(eyre!("SELECT query could not be executed\n{}", e));
             }
         };
 
-        let mut rows: Vec<Vec<String>> = Vec::new();
         let column_count = statement.column_count();
+        let mut rows = statement.query([])?;
+        let mut result_rows: Vec<Vec<String>> = Vec::new();
 
-        loop {
-            match statement.next() {
-                Ok(sqlite::State::Row) => {
-                    let row: Result<Vec<String>, sqlite::Error> =
-                        (0..column_count).map(|i| statement.read(i)).collect();
-                    let row = row?; // Propagate error if any column read fails
-                    rows.push(row);
-                }
-                Ok(sqlite::State::Done) => break,
-                Err(e) => return Err(e.into()), // Propagate error
+        while let Some(row) = rows.next()? {
+            let mut result_row: Vec<String> = Vec::new();
+            for i in 0..column_count {
+                let value = row.get_ref(i)?;
+                result_row.push(match value {
+                    ValueRef::Null => "NULL".to_string(),
+                    ValueRef::Integer(i) => i.to_string(),
+                    ValueRef::Real(f) => f.to_string(),
+                    ValueRef::Text(t) => String::from_utf8_lossy(t).to_string(),
+                    ValueRef::Blob(b) => String::from_utf8_lossy(b).to_string(),
+                });
             }
+            result_rows.push(result_row);
         }
 
-        Ok(rows)
+        Ok(result_rows)
     }
 
     pub fn execute(&self, query: String) -> Result<usize> {
@@ -73,14 +73,16 @@ impl SqlSession {
             ));
         }
 
-        self.connection.execute(query)?;
-        Ok(self.connection.change_count())
+        let changes = self.connection.execute(&query, [])?;
+        Ok(changes)
     }
+
     pub fn get_change_count(&self) -> usize {
-        self.connection.change_count()
+        self.connection.changes() as usize
     }
 
     pub fn commit(&self) {
-        let _ = self.connection.execute("COMMIT");
+        let _ = self.connection.execute("COMMIT", []);
     }
 }
+
