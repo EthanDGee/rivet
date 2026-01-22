@@ -1,5 +1,5 @@
+use color_eyre::eyre::{Result, eyre};
 use sqlite::Connection;
-
 pub struct SqlSession {
     sql_path: String,
     connection: Connection,
@@ -24,6 +24,27 @@ impl SqlSession {
             connection,
             read_only,
         }
+    }
+
+    pub fn execute(&self, query: String) -> Result<String> {
+        if query.is_empty() {
+            return Err(eyre!("Empty Query"));
+        }
+
+        // check if it's read only check for write operations and exit early
+        if self.read_only && query.trim_start().to_uppercase().starts_with("DELETE")
+            || query.trim_start().to_uppercase().starts_with("UPDATE")
+        {
+            return Err(eyre!(
+                "Attempted an {} operation on a read only database",
+                query.trim_start().to_uppercase()
+            ));
+        }
+        Ok("Success!".to_string())
+    }
+
+    pub fn get_change_count(&self) -> usize {
+        self.connection.change_count()
     }
 
     pub fn commit(&self) {
