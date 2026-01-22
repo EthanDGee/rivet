@@ -26,28 +26,28 @@ impl SqlSession {
         }
     }
 
-    pub fn execute(&self, query: String) -> Result<String> {
+    pub fn execute(&self, query: String) -> Result<usize> {
         if query.is_empty() {
             return Err(eyre!("Empty Query"));
         }
 
         // check if it's read only check for write operations and exit early
-        if self.read_only && query.trim_start().to_uppercase().starts_with("DELETE")
-            || query.trim_start().to_uppercase().starts_with("UPDATE")
-        {
+        if self.read_only {
             return Err(eyre!(
                 "Attempted an {} operation on a read only database",
                 query.trim_start().to_uppercase()
             ));
         }
-        Ok("Success!".to_string())
-    }
 
+        self.connection.execute(query)?;
+        Ok(self.connection.change_count())
+    }
     pub fn get_change_count(&self) -> usize {
         self.connection.change_count()
     }
 
-    pub fn commit(&self) {
-        self.connection.execute("COMMIT");
+    pub fn commit(&self) -> Result<usize> {
+        self.connection.execute("COMMIT")?;
+        Ok(self.connection.change_count())
     }
 }
