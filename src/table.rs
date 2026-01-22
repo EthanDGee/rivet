@@ -1,7 +1,3 @@
-use color_eyre::Result;
-use core::num;
-use crossterm::event::KeyModifiers;
-use itertools::Itertools;
 use ratatui::{
     layout::{Constraint, Layout, Margin, Rect},
     style::{self, Color, Modifier, Style, Stylize},
@@ -12,7 +8,6 @@ use ratatui::{
     },
 };
 use std::vec;
-use unicode_width::UnicodeWidthStr;
 
 const ITEM_HEIGHT: usize = 4;
 
@@ -52,7 +47,7 @@ impl TableData {
     }
 }
 
-struct TableView {
+pub struct TableView {
     data: TableData,
     state: TableState,
     scroll_state: ScrollbarState,

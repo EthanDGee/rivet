@@ -1,5 +1,6 @@
-use crate::sql_session::SqlSession;
+use crate::table::TableView;
 use crate::ui::ui;
+use crate::{sql_session::SqlSession, table};
 use crossterm::{
     cursor,
     event::{self, Event, KeyCode, KeyEventKind, KeyModifiers},
@@ -20,6 +21,7 @@ pub struct App {
     pub sql_path: String,
     session: SqlSession,
     pub current_screen: Screen,
+    pub table_view: Option<TableView>,
     exit: bool,
 }
 
@@ -30,6 +32,7 @@ impl App {
             sql_path,
             session: sql_session,
             current_screen: Screen::Main,
+            table_view: None,
             exit: false,
         }
     }
@@ -77,6 +80,24 @@ impl App {
                     match key_event.code {
                         KeyCode::Char('y') => self.exit(),
                         KeyCode::Char('n') => self.current_screen = Screen::Main,
+                        _ => {}
+                    }
+                }
+
+                if let Screen::Results = self.current_screen {
+                    //handle table navigation
+                    if let Some(table_view) = &mut self.table_view {
+                        match key_event.code {
+                            KeyCode::Char('j') | KeyCode::Up => table_view.next_row(),
+                            KeyCode::Char('k') | KeyCode::Down => table_view.previous_row(),
+                            KeyCode::Char('h') | KeyCode::Left => table_view.previous_column(),
+                            KeyCode::Char('l') | KeyCode::Right => table_view.next_column(),
+                            _ => {}
+                        }
+                    }
+                    // non navigation related functionality
+                    match key_event.code {
+                        KeyCode::Char('q') | KeyCode::Esc => self.current_screen = Screen::Main,
                         _ => {}
                     }
                 }
