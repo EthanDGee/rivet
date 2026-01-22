@@ -1,17 +1,8 @@
-use crate::constants::TOOL_NAME;
 use crate::sql_session::SqlSession;
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use ratatui::{
-    DefaultTerminal, Frame,
-    buffer::Buffer,
-    layout::Rect,
-    style::Stylize,
-    symbols::border,
-    text::{Line, Text},
-    widgets::{Block, Paragraph, Widget},
-};
-use std::{io, process::exit};
-
+use crate::ui::ui;
+use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
+use ratatui::{DefaultTerminal, Frame};
+use std::io;
 // Handle screen states
 #[derive(Debug, Default)]
 pub enum Screens {
@@ -23,9 +14,9 @@ pub enum Screens {
 }
 
 pub struct App {
-    sql_path: String,
+    pub sql_path: String,
     session: SqlSession,
-    current_screen: Screens,
+    pub current_screen: Screens,
     exit: bool,
 }
 
@@ -56,10 +47,6 @@ impl App {
         Ok(())
     }
 
-    fn draw(&self, frame: &mut Frame) {
-        frame.render_widget(self, frame.area());
-    }
-
     fn handle_events(&mut self) -> io::Result<()> {
         match event::read()? {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
@@ -73,30 +60,14 @@ impl App {
         };
         Ok(())
     }
+    fn draw(&self, frame: &mut Frame) {
+        ui(frame, self)
+    }
 
     // App Specific Functionality.
     fn exit(&mut self) {
+        // TODO: flush cache to prevent unwanted changes being saved in future sessions
+
         self.exit = true;
-    }
-}
-
-impl Widget for &App {
-    fn render(self, area: Rect, buf: &mut Buffer) {
-        let title = Line::from(TOOL_NAME.bold());
-        let instructions = Line::from(vec![" Quit ".into(), "<C-Q> ".blue().bold()]);
-        let block = Block::bordered()
-            .title(title.centered())
-            .title_bottom(instructions.centered())
-            .border_set(border::THICK);
-
-        let db_info = Text::from(vec![Line::from(vec![
-            "Value: ".into(),
-            self.sql_path.to_string().yellow(),
-        ])]);
-
-        Paragraph::new(db_info)
-            .centered()
-            .block(block)
-            .render(area, buf);
     }
 }

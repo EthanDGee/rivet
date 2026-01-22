@@ -46,8 +46,7 @@ impl SqlSession {
         self.connection.change_count()
     }
 
-    pub fn commit(&self) -> Result<usize> {
-        self.connection.execute("COMMIT")?;
-        Ok(self.connection.change_count())
+    pub fn commit(&self) {
+        self.connection.execute("COMMIT");
     }
 }
