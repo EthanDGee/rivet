@@ -1,5 +1,6 @@
-use crate::app::{self, App, Screen};
+use crate::app::{App, Screen};
 use crate::constants::TOOL_NAME;
+use ratatui::widgets::Padding;
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
@@ -32,6 +33,16 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         ])
         .split(popup_layout[1])[1] // Return the middle chunk
 }
+
+pub fn floating_window(frame: &mut Frame) -> Rect {
+    let window = centered_rect(75, 75, frame.area());
+    let border: Block = Block::bordered().blue().border_set(border::THICK);
+
+    frame.render_widget(border, window);
+
+    window
+}
+
 pub fn ui(frame: &mut Frame, app: &App) {
     // set up screen border
     let title: Line = Line::from(format!("{}({})", TOOL_NAME, app.sql_path).bold());
@@ -62,18 +73,22 @@ pub fn ui(frame: &mut Frame, app: &App) {
     }
 
     if let Screen::Help = app.current_screen {
-        let floating_window: Rect = centered_rect(60, 60, frame.area());
-
-        let commands: Paragraph = Paragraph::new("HELP").centered();
+        let floating_window: Rect = floating_window(frame);
+        let commands: Paragraph = Paragraph::new("HELP")
+            .centered()
+            .block(Block::default().padding(Padding::uniform(2)));
 
         frame.render_widget(commands, floating_window);
         return;
     }
 
     if let Screen::Exiting = app.current_screen {
-        let floating_window: Rect = centered_rect(60, 60, frame.area());
+        let floating_window: Rect = floating_window(frame);
 
-        let confirmation: Paragraph = Paragraph::new(format!("Quit {} Session? y/n", TOOL_NAME));
+        let confirmation: Paragraph = Paragraph::new(format!("Quit {} Session? y/n", TOOL_NAME))
+            .centered()
+            .block(Block::default().padding(Padding::uniform(2)))
+            .bold();
 
         frame.render_widget(confirmation, floating_window);
     }
