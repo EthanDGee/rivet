@@ -50,10 +50,22 @@ impl App {
     fn handle_events(&mut self) -> io::Result<()> {
         match event::read()? {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
+                // Application Wide Commands
                 match (key_event.code, key_event.modifiers) {
                     (KeyCode::Char('q'), KeyModifiers::CONTROL) => self.exit(),
                     (KeyCode::Char('s'), KeyModifiers::CONTROL) => self.session.commit(),
+                    (KeyCode::Char('h'), KeyModifiers::CONTROL) => {
+                        self.current_screen = Screens::Help
+                    }
                     _ => {}
+                }
+
+                if let Screens::Help = self.current_screen {
+                    match key_event.code {
+                        KeyCode::Esc => self.current_screen = Screens::Main,
+                        KeyCode::Char('q') => self.current_screen = Screens::Main,
+                        _ => {}
+                    }
                 }
             }
             _ => {}
