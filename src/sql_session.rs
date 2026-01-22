@@ -1,5 +1,8 @@
+use core::prelude;
+use std::f32::consts::E;
+
 use color_eyre::eyre::{Result, eyre};
-use sqlite::Connection;
+use sqlite::{Connection, Value};
 pub struct SqlSession {
     sql_path: String,
     connection: Connection,
@@ -26,6 +29,37 @@ impl SqlSession {
         }
     }
 
+    pub fn select(&self, query: String) -> Result<Vec<Vec<String>>> {
+        if query.is_empty() {
+            return Err(eyre!("Empty Query"));
+        }
+
+        let mut statement = match self.connection.prepare(query) {
+            Ok(statement) => statement,
+            Err(e) => {
+                return Err(eyre!("SELECT query could not be executed\n{}", e));
+            }
+        };
+
+        let mut rows: Vec<Vec<String>> = Vec::new();
+        let column_count = statement.column_count();
+
+        loop {
+            match statement.next() {
+                Ok(sqlite::State::Row) => {
+                    let row: Result<Vec<String>, sqlite::Error> =
+                        (0..column_count).map(|i| statement.read(i)).collect();
+                    let row = row?; // Propagate error if any column read fails
+                    rows.push(row);
+                }
+                Ok(sqlite::State::Done) => break,
+                Err(e) => return Err(e.into()), // Propagate error
+            }
+        }
+
+        Ok(rows)
+    }
+
     pub fn execute(&self, query: String) -> Result<usize> {
         if query.is_empty() {
             return Err(eyre!("Empty Query"));
@@ -47,6 +81,6 @@ impl SqlSession {
     }
 
     pub fn commit(&self) {
-        self.connection.execute("COMMIT");
+        let _ = self.connection.execute("COMMIT");
     }
 }
