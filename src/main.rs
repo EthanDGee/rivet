@@ -2,6 +2,7 @@ use std::io;
 mod app;
 mod constants;
 mod sql_session;
+mod table;
 use app::App;
 mod ui;
 
