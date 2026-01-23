@@ -1,4 +1,5 @@
 use crate::table::TableView;
+use crate::terminal::SqlTerminal;
 use crate::ui::ui;
 use crate::{sql_session::SqlSession, table};
 use crossterm::{
@@ -21,17 +22,19 @@ pub struct App {
     pub sql_path: String,
     session: SqlSession,
     pub current_screen: Screen,
+    pub sql_terminal: SqlTerminal,
     pub table_view: Option<TableView>,
     exit: bool,
 }
 
 impl App {
-    pub fn new(sql_path: String) -> Self {
-        let sql_session = SqlSession::new(sql_path.clone());
+    pub fn new(sql_path: String, read_only: bool) -> Self {
+        let sql_session = SqlSession::new(sql_path.clone(), read_only);
         App {
             sql_path,
             session: sql_session,
             current_screen: Screen::Main,
+            sql_terminal: SqlTerminal::new(),
             table_view: None,
             exit: false,
         }

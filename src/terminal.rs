@@ -1,17 +1,17 @@
 const MAX_HISTORY_LENGTH: usize = 100;
 
-struct Terminal {
+pub struct SqlTerminal {
     history: Vec<String>,
     history_index: usize,
     input: String,
     cursor_index: usize,
 }
 
-impl Terminal {
+impl SqlTerminal {
     pub fn new() -> Self {
         let mut history: Vec<String> = Vec::new();
         history.push("".to_string());
-        Terminal {
+        SqlTerminal {
             history,
             history_index: 0,
             input: "".to_string(),
