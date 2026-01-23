@@ -18,4 +18,30 @@ impl Terminal {
             cursor_index: 0,
         }
     }
+
+    pub fn increment_history(&mut self) {
+        if self.history_index == self.history.len() - 1 {
+            return;
+        }
+
+        // save the current_state and swap input to next        self.history[self.history_index] = self.input.clone();
+        self.history_index += 1;
+        self.input = self.history[self.history_index].clone();
+
+        // move cursor to end of line
+        self.cursor_index = self.input.len();
+    }
+
+    pub fn decrement_history(&mut self) {
+        if self.history_index == 0 {
+            return;
+        }
+        // save the current and swap input to previous
+        self.history[self.history_index] = self.input.clone();
+        self.history_index -= 1;
+        self.input = self.history[self.history_index].clone();
+
+        // move cursor to end of line
+        self.cursor_index = self.input.len();
+    }
 }
