@@ -10,7 +10,7 @@ use std::io;
 #[derive(Debug, Default)]
 pub enum Screen {
     #[default]
-    Main,
+    Terminal,
     Results,
     Help,
     Exiting,
@@ -19,7 +19,7 @@ pub enum Screen {
 pub struct App {
     pub sql_path: String,
     session: SqlSession,
-    pub current_screen: Screen,
+    pub screen: Screen,
     pub sql_terminal: SqlTerminal,
     pub table_view: Option<TableView>,
     exit: bool,
@@ -31,7 +31,7 @@ impl App {
         App {
             sql_path,
             session: sql_session,
-            current_screen: Screen::Main,
+            screen: Screen::Terminal,
             sql_terminal: SqlTerminal::new(),
             table_view: None,
             exit: false,
@@ -44,8 +44,8 @@ impl App {
             terminal.draw(|frame| self.draw(frame))?;
             self.handle_events()?;
 
-            match self.current_screen {
-                Screen::Main => {}
+            match self.screen {
+                Screen::Terminal => {}
                 Screen::Results => {}
                 Screen::Help => {}
                 Screen::Exiting => {}
@@ -60,26 +60,28 @@ impl App {
                 // Application Wide Commands
                 match (key_event.code, key_event.modifiers) {
                     (KeyCode::Char('s'), KeyModifiers::CONTROL) => self.session.commit(),
-                    (KeyCode::Char('q'), KeyModifiers::CONTROL) => {
-                        self.current_screen = Screen::Exiting
-                    }
-                    (KeyCode::Char('h'), KeyModifiers::CONTROL) => {
-                        self.current_screen = Screen::Help
-                    }
+                    (KeyCode::Char('q'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
+                    (KeyCode::Char('h'), KeyModifiers::CONTROL) => self.screen = Screen::Help,
                     _ => {}
                 }
 
-                if let Screen::Main = self.current_screen {
+                if let Screen::Terminal = self.screen {
                     match key_event.code {
                         KeyCode::Up => self.sql_terminal.decrement_history(),
                         KeyCode::Down => self.sql_terminal.increment_history(),
                         KeyCode::Left => self.sql_terminal.move_cursor_left(),
                         KeyCode::Right => self.sql_terminal.move_cursor_right(),
+                        KeyCode::Char(to_insert) => self.sql_terminal.enter_char(to_insert),
+                        KeyCode::Backspace => self.sql_terminal.delete_char(),
+                        KeyCode::Delete => {
+                            self.sql_terminal.move_cursor_right();
+                            self.sql_terminal.delete_char();
+                        }
                         _ => {}
                     }
                 }
 
-                if let Screen::Results = self.current_screen {
+                if let Screen::Results = self.screen {
                     //handle table navigation
                     if let Some(table_view) = &mut self.table_view {
                         match key_event.code {
@@ -92,23 +94,23 @@ impl App {
                     }
                     // non navigation related functionality
                     match key_event.code {
-                        KeyCode::Char('q') | KeyCode::Esc => self.current_screen = Screen::Main,
+                        KeyCode::Char('q') | KeyCode::Esc => self.screen = Screen::Terminal,
                         _ => {}
                     }
                 }
 
-                if let Screen::Help = self.current_screen {
+                if let Screen::Help = self.screen {
                     match key_event.code {
-                        KeyCode::Esc => self.current_screen = Screen::Main,
-                        KeyCode::Char('q') => self.current_screen = Screen::Main,
+                        KeyCode::Esc => self.screen = Screen::Terminal,
+                        KeyCode::Char('q') => self.screen = Screen::Terminal,
                         _ => {}
                     }
                 }
 
-                if let Screen::Exiting = self.current_screen {
+                if let Screen::Exiting = self.screen {
                     match key_event.code {
                         KeyCode::Char('y') => self.exit(),
-                        KeyCode::Char('n') => self.current_screen = Screen::Main,
+                        KeyCode::Char('n') => self.screen = Screen::Terminal,
                         _ => {}
                     }
                 }

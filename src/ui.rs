@@ -1,6 +1,6 @@
 use crate::app::{App, Screen};
 use crate::constants::TOOL_NAME;
-use ratatui::widgets::Padding;
+use ratatui::widgets::{List, Padding};
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
@@ -56,23 +56,23 @@ pub fn ui(frame: &mut Frame, app: &App) {
     ]);
     let block: Block = Block::bordered()
         .title(title.centered())
+        .white()
         .title_bottom(instructions.centered())
         .border_set(border::THICK);
 
     frame.render_widget(block.clone(), frame.area());
 
-    if let Screen::Main = app.current_screen {
-        let db_info: Text = Text::from(vec![Line::from(vec![
-            "Value: ".into(),
-            app.sql_path.to_string().yellow(),
-        ])]);
+    if let Screen::Terminal = app.screen {
+        let command_line = Paragraph::new(app.sql_terminal.input.clone())
+            .green()
+            .block(Block::default().padding(Padding::uniform(2)));
 
-        let paragraph: Paragraph = Paragraph::new(db_info).centered().block(block);
-        frame.render_widget(paragraph, frame.area());
+        frame.render_widget(command_line, frame.area());
+
         return;
     }
 
-    if let Screen::Help = app.current_screen {
+    if let Screen::Help = app.screen {
         let floating_window: Rect = floating_window(frame);
         let commands: Paragraph = Paragraph::new("HELP")
             .centered()
@@ -82,7 +82,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
         return;
     }
 
-    if let Screen::Exiting = app.current_screen {
+    if let Screen::Exiting = app.screen {
         let floating_window: Rect = floating_window(frame);
 
         let confirmation: Paragraph = Paragraph::new(format!("Quit {} Session? y/n", TOOL_NAME))

@@ -3,13 +3,13 @@ const MAX_HISTORY_LENGTH: usize = 100;
 pub struct SqlTerminal {
     history: Vec<String>,
     history_index: usize,
-    input: String,
+    pub input: String,
     cursor_index: usize,
 }
 
 impl SqlTerminal {
     pub fn new() -> Self {
-        let mut history: Vec<String> = Vec::new();
+        let mut history: Vec<String> = vec!["".to_string()];
         history.push("".to_string());
         SqlTerminal {
             history,
@@ -39,7 +39,7 @@ impl SqlTerminal {
         self.move_cursor_right();
     }
 
-    pub fn delete_chat(&mut self) {
+    pub fn delete_char(&mut self) {
         if self.cursor_index == 0 {
             return;
         }
