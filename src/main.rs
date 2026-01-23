@@ -3,6 +3,7 @@ mod app;
 mod constants;
 mod sql_session;
 mod table;
+mod terminal;
 use app::App;
 mod ui;
 
