@@ -44,4 +44,18 @@ impl Terminal {
         // move cursor to end of line
         self.cursor_index = self.input.len();
     }
+
+    pub fn move_cursor_left(&mut self) {
+        if self.cursor_index == 0 {
+            return;
+        }
+        self.cursor_index -= 1
+    }
+
+    pub fn move_cursor_right(&mut self) {
+        if self.cursor_index == self.input.len() {
+            return;
+        }
+        self.cursor_index += 1
+    }
 }
