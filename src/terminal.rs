@@ -1,4 +1,4 @@
-const MAX_HISTORY_LENGTH: u8 = 100;
+const MAX_HISTORY_LENGTH: usize = 100;
 
 struct Terminal {
     history: Vec<String>,
@@ -78,5 +78,25 @@ impl Terminal {
 
         // move cursor to end of line
         self.cursor_index = self.input.len();
+    }
+
+    pub fn add_command(&mut self) {
+        let mut len_history = self.history.len();
+
+        // modify history to move command to last executed
+        if self.history_index != len_history - 1 {
+            self.history[len_history - 1] = self.input.clone();
+        }
+
+        // trim history if over length
+        if len_history >= MAX_HISTORY_LENGTH {
+            let extra_elements: usize = len_history - MAX_HISTORY_LENGTH;
+            self.history.drain(0..extra_elements);
+            len_history = self.history.len()
+        }
+        // update index to latest and add new blank
+        self.history_index = len_history - 1;
+        self.history.push("".to_string());
+        self.cursor_index = 0;
     }
 }
