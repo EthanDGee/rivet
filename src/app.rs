@@ -1,13 +1,11 @@
+use crate::sql_session::SqlSession;
 use crate::table::TableView;
 use crate::terminal::SqlTerminal;
 use crate::ui::ui;
-use crate::{sql_session::SqlSession, table};
-use crossterm::{
-    cursor,
-    event::{self, Event, KeyCode, KeyEventKind, KeyModifiers},
-};
+use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};
 use std::io;
+
 // Handle screen states
 #[derive(Debug, Default)]
 pub enum Screen {
@@ -71,18 +69,12 @@ impl App {
                     _ => {}
                 }
 
-                if let Screen::Help = self.current_screen {
+                if let Screen::Main = self.current_screen {
                     match key_event.code {
-                        KeyCode::Esc => self.current_screen = Screen::Main,
-                        KeyCode::Char('q') => self.current_screen = Screen::Main,
-                        _ => {}
-                    }
-                }
-
-                if let Screen::Exiting = self.current_screen {
-                    match key_event.code {
-                        KeyCode::Char('y') => self.exit(),
-                        KeyCode::Char('n') => self.current_screen = Screen::Main,
+                        KeyCode::Up => self.sql_terminal.decrement_history(),
+                        KeyCode::Down => self.sql_terminal.increment_history(),
+                        KeyCode::Left => self.sql_terminal.move_cursor_left(),
+                        KeyCode::Right => self.sql_terminal.move_cursor_right(),
                         _ => {}
                     }
                 }
@@ -101,6 +93,22 @@ impl App {
                     // non navigation related functionality
                     match key_event.code {
                         KeyCode::Char('q') | KeyCode::Esc => self.current_screen = Screen::Main,
+                        _ => {}
+                    }
+                }
+
+                if let Screen::Help = self.current_screen {
+                    match key_event.code {
+                        KeyCode::Esc => self.current_screen = Screen::Main,
+                        KeyCode::Char('q') => self.current_screen = Screen::Main,
+                        _ => {}
+                    }
+                }
+
+                if let Screen::Exiting = self.current_screen {
+                    match key_event.code {
+                        KeyCode::Char('y') => self.exit(),
+                        KeyCode::Char('n') => self.current_screen = Screen::Main,
                         _ => {}
                     }
                 }
