@@ -2,10 +2,9 @@ use color_eyre::eyre::{Result, eyre};
 use rusqlite::{Connection, types::ValueRef};
 
 pub struct SqlSession {
-    #[allow(dead_code)]
     sql_path: String,
     connection: Connection,
-    read_only: bool,
+    pub read_only: bool,
 }
 
 impl SqlSession {
@@ -18,6 +17,22 @@ impl SqlSession {
                 std::process::exit(1);
             }
         };
+        //check to see if the database is read_only
+        let read_only_db: bool = match connection.is_readonly() {
+            Ok(read_only_db) => read_only_db,
+            Err(e) => {
+                eprintln!("Failed to determine if {} is read_only", e);
+                std::process::exit(1)
+            }
+        };
+        // if it is a read only database and user specifies write operations throw an error
+        if read_only_db & !read_only {
+            eprint!(
+                "Unable to open {0} in write mode. {0} is a read only database.",
+                sql_path
+            );
+            std::process::exit(1);
+        }
 
         SqlSession {
             sql_path,
@@ -85,4 +100,3 @@ impl SqlSession {
         let _ = self.connection.execute("COMMIT", []);
     }
 }
-
