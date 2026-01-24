@@ -79,6 +79,9 @@ impl App {
                             self.sql_terminal.move_cursor_right();
                             self.sql_terminal.delete_char();
                         }
+                        KeyCode::Enter => {
+                            self.execute_command();
+                        }
                         _ => {}
                     }
                 }
@@ -130,5 +133,25 @@ impl App {
         // TODO: flush cache to prevent unwanted changes being saved in future sessions
 
         self.exit = true;
+    }
+
+    fn execute_command(&mut self) {
+        let query = self.sql_terminal.input.to_string();
+        if query.is_empty() {
+            return;
+        }
+
+        // Toggle operation for select vs other operations
+        if query
+            .split_whitespace()
+            .next()
+            .is_some_and(|x| x.to_ascii_uppercase().eq("SELECT"))
+        {
+            self.session.select(query.clone());
+        }
+        self.session.execute(query);
+
+        //update history
+        self.sql_terminal.add_command();
     }
 }
