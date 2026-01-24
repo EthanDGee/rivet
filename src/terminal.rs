@@ -1,7 +1,7 @@
 const MAX_HISTORY_LENGTH: usize = 100;
 
 pub struct SqlTerminal {
-    history: Vec<String>,
+    pub history: Vec<String>,
     history_index: usize,
     pub input: String,
     cursor_index: usize,
@@ -43,13 +43,15 @@ impl SqlTerminal {
         if self.cursor_index == 0 {
             return;
         }
-
-        // take left and right half skipping cursor_index and merge back together
-        let left_half = self.input.chars().take(self.cursor_index);
-        let right_half = self.input.chars().skip(self.cursor_index);
-        self.input = left_half.chain(right_half).collect();
-
-        self.move_cursor_left();
+        // Find the byte index of the char before the cursor
+        let byte_idx = self
+            .input
+            .char_indices()
+            .nth(self.cursor_index - 1)
+            .map(|(idx, _)| idx)
+            .unwrap();
+        self.input.remove(byte_idx);
+        self.cursor_index -= 1;
     }
 
     // history operations

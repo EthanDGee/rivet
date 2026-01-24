@@ -74,6 +74,8 @@ impl App {
                         KeyCode::Char(to_insert) => self.sql_terminal.enter_char(to_insert),
                         KeyCode::Backspace => self.sql_terminal.delete_char(),
                         KeyCode::Delete => {
+                            //TODO: resolve issues with delete turning into backspace at end of
+                            //line
                             self.sql_terminal.move_cursor_right();
                             self.sql_terminal.delete_char();
                         }
