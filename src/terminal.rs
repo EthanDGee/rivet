@@ -82,6 +82,8 @@ impl SqlTerminal {
     }
 
     pub fn add_command(&mut self) {
+        self.input = self.input.trim_end().to_string();
+
         if self.input.is_empty() {
             return;
         }
@@ -94,7 +96,11 @@ impl SqlTerminal {
 
         let mut len_history = self.history.len();
 
-        // modify history to move command to last executed
+        // replace first in history if empty
+        if len_history == 1 {
+            self.history[0] = self.input.clone();
+        } else
+        // else modify history to move command to last executed
         if self.history_index != len_history - 1 {
             self.history[len_history - 1] = self.input.clone();
         }
