@@ -1,12 +1,4 @@
-use ratatui::{
-    layout::{Constraint, Layout, Margin, Rect},
-    style::{self, Color, Modifier, Style, Stylize},
-    text::Text,
-    widgets::{
-        Block, BorderType, Cell, HighlightSpacing, Paragraph, Row, Scrollbar, ScrollbarOrientation,
-        ScrollbarState, Table, TableState,
-    },
-};
+use ratatui::widgets::{ScrollbarState, TableState};
 use std::vec;
 
 const ITEM_HEIGHT: usize = 4;
@@ -24,7 +16,7 @@ impl TableData {
         let mut max_lengths: Vec<u8> = vec![];
 
         for col in 0..(columns.len() - 1) {
-            // set the max lengths initially to be the legths of the colummn names
+            // set the max lengths initially to be the lengths of the column names
             max_lengths.push(columns[col].as_str().len() as u8);
 
             // get max length for each column
@@ -54,11 +46,11 @@ pub struct TableView {
 }
 
 impl TableView {
-    pub fn new(data: TableData) -> Self {
+    pub fn new(columns: Vec<String>, rows: Vec<Vec<String>>) -> Self {
         let state = TableState::default().with_offset(0);
-        let scroll_state: ScrollbarState = ScrollbarState::new((data.rows.len() - 1) * ITEM_HEIGHT);
+        let scroll_state: ScrollbarState = ScrollbarState::new((rows.len() - 1) * ITEM_HEIGHT);
         TableView {
-            data,
+            data: TableData::new(columns, rows),
             state,
             scroll_state,
         }
