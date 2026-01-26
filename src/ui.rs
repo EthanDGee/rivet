@@ -78,26 +78,67 @@ pub fn ui(frame: &mut Frame, app: &App) {
         "<C-Q> ".fg(app.theme.highlight).bold(),
     ]);
 
-    let block = Block::bordered()
+    let main_block = Block::bordered()
         .title(title.centered())
         .style(Style::default().fg(app.theme.body_text))
         .border_style(Style::default().fg(app.theme.outer_border))
         .title_bottom(instructions.centered())
         .border_set(border::ROUNDED);
 
-    frame.render_widget(block, frame.area());
+    let main_area = frame.area();
+    frame.render_widget(main_block.clone(), main_area);
+    let inner_area = main_block.inner(main_area);
 
     if let Screen::Terminal = app.screen {
-        let terminal_layout = Layout::default()
+        let terminal_chunks = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Max(90), Constraint::Min(5)])
-            .split(frame.area());
+            .constraints([Constraint::Min(0), Constraint::Length(3)])
+            .split(inner_area);
 
-        let command_line = Paragraph::new(format!("> {}", app.sql_terminal.input.clone()))
+        let history_area = terminal_chunks[0];
+        let input_area = terminal_chunks[1];
+
+        // History
+        let history_lines: Vec<Line> = app
+            .sql_terminal
+            .history
+            .iter()
+            .map(|line| Line::from(format!("> {}", line)))
+            .collect();
+
+        let history_paragraph = Paragraph::new(history_lines.clone())
+            .block(Block::default().padding(Padding::horizontal(1)))
+            .fg(app.theme.body_text)
+            .wrap(ratatui::widgets::Wrap { trim: true });
+
+        // Auto-scroll to bottom
+        let scroll = (history_lines.len() as u16).saturating_sub(history_area.height);
+        let history_paragraph = history_paragraph.scroll((scroll, 0));
+
+        frame.render_widget(history_paragraph, history_area);
+
+        // Input
+        let input_text = &app.sql_terminal.input;
+        let visible_width = input_area.width.saturating_sub(2); // inside borders
+        let scroll_x = (2 + input_text.len()).saturating_sub(visible_width as usize) as u16;
+
+        let input_paragraph = Paragraph::new(format!("> {}", input_text))
             .fg(app.theme.header_text)
-            .block(Block::default().padding(Padding::uniform(2)));
+            .block(
+                Block::bordered()
+                    .border_style(Style::default().fg(app.theme.inner_border))
+                    .border_set(border::ROUNDED),
+            )
+            .scroll((0, scroll_x));
 
-        frame.render_widget(command_line, terminal_layout[1]);
+        frame.render_widget(input_paragraph, input_area);
+
+        // Cursor
+        frame.set_cursor_position((
+            input_area.x + 1 + (2 + input_text.len() as u16).saturating_sub(scroll_x),
+            input_area.y + 1,
+        ));
+
         return;
     }
 
@@ -124,4 +165,3 @@ pub fn ui(frame: &mut Frame, app: &App) {
         frame.render_widget(confirmation, floating_window_rect);
     }
 }
-
