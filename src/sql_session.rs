@@ -18,7 +18,7 @@ impl SqlSession {
             }
         };
         //check to see if the database is read_only
-        let read_only_db: bool = match connection.is_readonly() {
+        let read_only_db: bool = match connection.is_readonly("main") {
             Ok(read_only_db) => read_only_db,
             Err(e) => {
                 eprintln!("Failed to determine if {} is read_only", e);
