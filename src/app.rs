@@ -1,7 +1,7 @@
 use crate::sql_session::SqlSession;
 use crate::table::TableView;
 use crate::terminal::SqlTerminal;
-use crate::ui::ui;
+use crate::ui::{ui, ColorPalette};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};
 use std::io;
@@ -22,6 +22,7 @@ pub struct App {
     pub screen: Screen,
     pub sql_terminal: SqlTerminal,
     pub table_view: Option<TableView>,
+    pub theme: ColorPalette,
     exit: bool,
 }
 
@@ -34,6 +35,7 @@ impl App {
             screen: Screen::Terminal,
             sql_terminal: SqlTerminal::new(),
             table_view: None,
+            theme: ColorPalette::tokyo_night(),
             exit: false,
         }
     }
