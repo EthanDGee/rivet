@@ -9,8 +9,7 @@ pub struct SqlTerminal {
 
 impl SqlTerminal {
     pub fn new() -> Self {
-        let mut history: Vec<String> = vec!["".to_string()];
-        history.push("".to_string());
+        let history: Vec<String> = vec!["".to_string()];
         SqlTerminal {
             history,
             history_index: 0,
@@ -73,7 +72,7 @@ impl SqlTerminal {
         if self.history_index == 0 {
             return;
         }
-        // save the current and swap input to previous
+        // save the current and swap input to the previous
         self.history[self.history_index] = self.input.clone();
         self.history_index -= 1;
         self.input = self.history[self.history_index].clone();
@@ -83,6 +82,16 @@ impl SqlTerminal {
     }
 
     pub fn add_command(&mut self) {
+        if self.input.is_empty() {
+            return;
+        }
+
+        // ensure duplicate entries are not added alongside each other
+        if self.history.last().is_some_and(|x| *x == self.input) {
+            self.input = "".to_string();
+            return;
+        }
+
         let mut len_history = self.history.len();
 
         // modify history to move command to last executed
@@ -99,6 +108,7 @@ impl SqlTerminal {
         // update index to latest and add new blank
         self.history_index = len_history - 1;
         self.history.push("".to_string());
+        self.input = "".to_string();
         self.cursor_index = 0;
     }
 }
