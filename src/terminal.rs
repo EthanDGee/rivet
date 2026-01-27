@@ -7,7 +7,7 @@ pub struct SqlTerminal {
     pub history: Vec<String>,
     history_index: usize,
     pub input: String,
-    cursor_index: usize,
+    pub cursor_index: usize,
     pub displayed_lines: VecDeque<String>,
     // Cache to reduce allocations during history navigation
     input_backup: Option<String>,

@@ -99,7 +99,9 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         // Input
         let input_text = &app.sql_terminal.input;
         let visible_width = input_area.width.saturating_sub(2); // inside borders
-        let scroll_x = (2 + input_text.len()).saturating_sub(visible_width as usize) as u16;
+
+        let cursor_offset_in_para = (2 + app.sql_terminal.cursor_index) as u16;
+        let scroll_x = cursor_offset_in_para.saturating_sub(visible_width);
 
         let input_paragraph = Paragraph::new(format!("> {}", input_text))
             .fg(app.theme.header_text)
@@ -114,7 +116,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
         // Cursor
         frame.set_cursor_position((
-            input_area.x + 1 + (2 + input_text.len() as u16).saturating_sub(scroll_x),
+            input_area.x + 1 + (cursor_offset_in_para - scroll_x),
             input_area.y + 1,
         ));
 
