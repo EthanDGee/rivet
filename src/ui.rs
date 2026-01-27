@@ -2,11 +2,11 @@ use crate::app::{App, Screen};
 use crate::constants::TOOL_NAME;
 use ratatui::{
     Frame,
-    layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Style, Stylize},
+    layout::{Constraint, Direction, Layout, Margin, Rect},
+    style::{Color, Modifier, Style, Stylize},
     symbols::border,
     text::Line,
-    widgets::{Block, Padding, Paragraph},
+    widgets::{Block, Cell, Padding, Paragraph, Row, Scrollbar, ScrollbarOrientation, Table},
 };
 use std::format;
 
@@ -28,6 +28,17 @@ impl ColorPalette {
             header_text: Color::from_u32(0x9ece6a),  // green
             body_text: Color::from_u32(0xc0caf5),    // foreground
             highlight: Color::from_u32(0x73daca),    // cyan
+        }
+    }
+
+    pub fn catppuccin_mocha() -> Self {
+        Self {
+            title: Color::from_u32(0xf5e0dc),        // rosewater
+            outer_border: Color::from_u32(0x8aadf4), // blue
+            inner_border: Color::from_u32(0xf38ba8), // red
+            header_text: Color::from_u32(0xa6e3a1),  // green
+            body_text: Color::from_u32(0xcdd6f4),    // text
+            highlight: Color::from_u32(0x94e2d5),    // teal
         }
     }
 }
@@ -63,7 +74,7 @@ pub fn floating_window(frame: &mut Frame, theme: &ColorPalette) -> Rect {
     window
 }
 
-pub fn ui(frame: &mut Frame, app: &App) {
+pub fn ui(frame: &mut Frame, app: &mut App) {
     let title = Line::from(
         format!("{}({})", TOOL_NAME, app.sql_path)
             .bold()
@@ -139,6 +150,61 @@ pub fn ui(frame: &mut Frame, app: &App) {
             input_area.y + 1,
         ));
 
+        return;
+    }
+
+    if let Screen::Results = app.screen {
+        if let Some(table_view) = &mut app.table_view {
+            let theme = &app.theme;
+            let data = &table_view.data;
+            // Adjust Constraint::Length by adding padding
+            let constraints: Vec<Constraint> = data
+                .max_lengths
+                .iter()
+                .map(|length| Constraint::Length(*length as u16 + 2))
+                .collect();
+
+            let header = Row::new(data.columns.clone())
+                .style(
+                    Style::default()
+                        .fg(theme.header_text)
+                        .add_modifier(Modifier::BOLD),
+                )
+                .bottom_margin(1); // Add bottom margin to header row for spacing
+
+            let rows: Vec<Row> = data
+                .rows
+                .iter()
+                .map(|row_data| {
+                    let cells = row_data
+                        .iter()
+                        .map(|cell_data| Cell::from(cell_data.as_str()))
+                        .collect::<Vec<Cell>>();
+                    Row::new(cells)
+                })
+                .collect();
+
+            let table = Table::new(rows, &constraints)
+                .header(header)
+                .block(Block::default().padding(Padding::horizontal(1)))
+                .highlight_style(Style::default().bg(theme.highlight).fg(Color::Black))
+                .highlight_symbol(">> ");
+
+            let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
+                .begin_symbol(Some("↑"))
+                .end_symbol(Some("↓"));
+
+            let table_area = inner_area;
+            frame.render_stateful_widget(table, table_area, &mut table_view.state);
+            frame.render_stateful_widget(
+                scrollbar,
+                table_area.inner(Margin {
+                    vertical: 1,
+                    horizontal: 0,
+                }),
+                &mut table_view.scroll_state,
+            );
+        }
         return;
     }
 

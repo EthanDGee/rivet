@@ -3,31 +3,30 @@ use std::vec;
 
 const ITEM_HEIGHT: usize = 4;
 
-struct TableData {
-    columns: Vec<String>,
-    max_lengths: Vec<u8>,
-    rows: Vec<Vec<String>>,
+pub struct TableData {
+    pub columns: Vec<String>,
+    pub max_lengths: Vec<u8>,
+    pub rows: Vec<Vec<String>>,
 }
 
 impl TableData {
     pub fn new(columns: Vec<String>, rows: Vec<Vec<String>>) -> Self {
         // calculate the max_lengths for each columns
+        let mut max_lengths: Vec<u8> = columns.iter().map(|s| s.len() as u8).collect();
 
-        let mut max_lengths: Vec<u8> = vec![];
+        if !rows.is_empty() {
+            for i in 0..columns.len() {
+                let max_in_col = rows
+                    .iter()
+                    .map(|row| row.get(i).map(|cell| cell.len()).unwrap_or(0))
+                    .max()
+                    .unwrap_or(0) as u8;
 
-        for col in 0..(columns.len() - 1) {
-            // set the max lengths initially to be the lengths of the column names
-            max_lengths.push(columns[col].as_str().len() as u8);
-
-            // get max length for each column
-            let max_row_length: u8 = rows[col]
-                .iter()
-                .map(|s| s.as_str().len())
-                .max()
-                .unwrap_or(0) as u8;
-
-            if max_lengths[col] < max_row_length {
-                max_lengths[col] = max_row_length;
+                if i < max_lengths.len() {
+                    max_lengths[i] = max_lengths[i].max(max_in_col);
+                } else {
+                    max_lengths.push(max_in_col);
+                }
             }
         }
 
@@ -40,9 +39,9 @@ impl TableData {
 }
 
 pub struct TableView {
-    data: TableData,
-    state: TableState,
-    scroll_state: ScrollbarState,
+    pub data: TableData,
+    pub state: TableState,
+    pub scroll_state: ScrollbarState,
 }
 
 impl TableView {

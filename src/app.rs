@@ -92,8 +92,8 @@ impl App {
                     //handle table navigation
                     if let Some(table_view) = &mut self.table_view {
                         match key_event.code {
-                            KeyCode::Char('j') | KeyCode::Up => table_view.next_row(),
-                            KeyCode::Char('k') | KeyCode::Down => table_view.previous_row(),
+                            KeyCode::Char('j') | KeyCode::Down => table_view.next_row(),
+                            KeyCode::Char('k') | KeyCode::Up => table_view.previous_row(),
                             KeyCode::Char('h') | KeyCode::Left => table_view.previous_column(),
                             KeyCode::Char('l') | KeyCode::Right => table_view.next_column(),
                             _ => {}
@@ -131,7 +131,7 @@ impl App {
         };
         Ok(())
     }
-    fn draw(&self, frame: &mut Frame) {
+    fn draw(&mut self, frame: &mut Frame) {
         ui(frame, self)
     }
 
