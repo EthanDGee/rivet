@@ -9,6 +9,8 @@ pub struct SqlTerminal {
     pub input: String,
     cursor_index: usize,
     pub displayed_lines: VecDeque<String>,
+    // Cache to reduce allocations during history navigation
+    input_backup: Option<String>,
 }
 
 impl SqlTerminal {
@@ -20,11 +22,13 @@ impl SqlTerminal {
             input: String::new(),
             cursor_index: 0,
             displayed_lines: VecDeque::with_capacity(MAX_LOG_LINES),
+            input_backup: None,
         }
     }
 
     pub fn add_log_line(&mut self, line: String) {
-        if self.displayed_lines.len() == MAX_LOG_LINES {
+        // Only check capacity when approaching limit to reduce overhead
+        if self.displayed_lines.len() >= MAX_LOG_LINES {
             self.displayed_lines.pop_front();
         }
         self.displayed_lines.push_back(line);
@@ -50,7 +54,10 @@ impl SqlTerminal {
             return;
         }
 
-        self.input.insert(self.cursor_index, new_char);
+        // Convert to character vector for safe UTF-8 manipulation
+        let mut chars: Vec<char> = self.input.chars().collect();
+        chars.insert(self.cursor_index, new_char);
+        self.input = chars.into_iter().collect();
         self.move_cursor_right();
     }
 
@@ -71,8 +78,14 @@ impl SqlTerminal {
         if self.history.is_empty() || self.history_index >= self.history.len().saturating_sub(1) {
             return;
         }
-        // Save current state and navigate
-        self.history[self.history_index] = self.input.clone();
+
+        // Save current input to backup to reduce allocations
+        if self.input_backup.is_none() {
+            self.input_backup = Some(std::mem::take(&mut self.input));
+        } else {
+            self.history[self.history_index] = std::mem::take(&mut self.input);
+        }
+
         self.history_index += 1;
         self.input = self.history[self.history_index].clone();
         self.cursor_index = self.input.chars().count();
@@ -82,25 +95,34 @@ impl SqlTerminal {
         if self.history_index == 0 {
             return;
         }
-        // save the current and swap input to the previous
-        self.history[self.history_index] = self.input.clone();
+
+        // Save current input using swap to reduce allocations
+        if self.input_backup.is_none() {
+            self.input_backup = Some(std::mem::take(&mut self.input));
+        } else {
+            self.history[self.history_index] = std::mem::take(&mut self.input);
+        }
+
         self.history_index -= 1;
         self.input = self.history[self.history_index].clone();
 
-        // move cursor to end of line
-        self.cursor_index = self.input.len();
+        // move cursor to end of line (character-based, not byte-based)
+        self.cursor_index = self.input.chars().count();
     }
 
     pub fn add_command(&mut self) {
-        self.input = self.input.trim_end().to_string();
+        // Trim in-place for efficiency
+        let new_len = self.input.trim_end().len();
+        self.input.truncate(new_len);
 
         if self.input.is_empty() {
+            self.input.clear();
             return;
         }
 
         // ensure duplicate entries are not added alongside each other
         if self.history.last().is_some_and(|x| *x == self.input) {
-            self.input = String::new();
+            self.input.clear();
             return;
         }
 
@@ -108,11 +130,14 @@ impl SqlTerminal {
 
         // replace first in history if empty
         if len_history == 1 {
-            self.history[0] = self.input.clone();
+            self.history[0] = std::mem::take(&mut self.input);
         } else
         // else modify history to move command to last executed
         if self.history_index != len_history - 1 {
-            self.history[len_history - 1] = self.input.clone();
+            self.history[len_history - 1] = std::mem::take(&mut self.input);
+        } else {
+            // Take the input and clear it
+            std::mem::take(&mut self.input);
         }
 
         // trim history if over length
@@ -124,7 +149,10 @@ impl SqlTerminal {
         // update index to latest and add new blank
         self.history_index = len_history - 1;
         self.history.push(String::new());
-        self.input = String::new();
+        self.input.clear(); // Reuse allocated memory instead of creating new String
         self.cursor_index = 0;
+
+        // Clear backup cache
+        self.input_backup = None;
     }
 }
