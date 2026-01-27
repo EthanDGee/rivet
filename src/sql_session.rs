@@ -7,7 +7,24 @@ pub struct SqlSession {
     pub read_only: bool,
 }
 
+
+
 impl SqlSession {
+    pub fn extract_column_names(&self, query: &str) -> Result<Vec<String>> {
+        if query.is_empty() {
+            return Err(eyre!("Empty Query provided to extract_column_names"));
+        }
+
+        let statement = self.connection.prepare(query)?;
+        let column_names: Vec<String> = statement
+            .column_names()
+            .iter()
+            .map(|name| name.to_string())
+            .collect();
+
+        Ok(column_names)
+    }
+
     pub fn new(sql_path: String, read_only: bool) -> Self {
         // attempt to connect to database
         let connection = match Connection::open(&sql_path) {
@@ -41,7 +58,7 @@ impl SqlSession {
         }
     }
 
-    pub fn select(&self, query: String) -> Result<Vec<Vec<String>>> {
+    pub fn select(&self, query: &str) -> Result<Vec<Vec<String>>> {
         if query.is_empty() {
             return Err(eyre!("Empty Query"));
         }
@@ -75,7 +92,7 @@ impl SqlSession {
         Ok(result_rows)
     }
 
-    pub fn execute(&self, query: String) -> Result<usize> {
+    pub fn execute(&self, query: &str) -> Result<usize> {
         if query.is_empty() {
             return Err(eyre!("Empty Query"));
         }
@@ -84,11 +101,11 @@ impl SqlSession {
         if self.read_only {
             return Err(eyre!(
                 "Attempted an {} operation on a read only database",
-                query.trim_start().to_uppercase()
+                query.trim_start().to_uppercase().as_str()
             ));
         }
 
-        let changes = self.connection.execute(&query, [])?;
+        let changes = self.connection.execute(query, [])?;
         Ok(changes)
     }
 
