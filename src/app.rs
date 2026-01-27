@@ -1,7 +1,8 @@
+use crate::colors::ColorPalette;
 use crate::sql_session::SqlSession;
 use crate::table::TableView;
 use crate::terminal::SqlTerminal;
-use crate::ui::{ColorPalette, ui};
+use crate::ui::ui;
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};
 use std::io;
@@ -35,7 +36,7 @@ impl App {
             screen: Screen::Terminal,
             sql_terminal: SqlTerminal::new(),
             table_view: None,
-            theme: ColorPalette::tokyo_night(),
+            theme: ColorPalette::nord(),
             exit: false,
         }
     }
@@ -63,6 +64,7 @@ impl App {
                 match (key_event.code, key_event.modifiers) {
                     (KeyCode::Char('s'), KeyModifiers::CONTROL) => self.session.commit(),
                     (KeyCode::Char('q'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
+                    (KeyCode::Char('c'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
                     (KeyCode::Char('h'), KeyModifiers::CONTROL) => self.screen = Screen::Help,
                     _ => {}
                 }

@@ -1,4 +1,5 @@
 use crate::app::{App, Screen};
+use crate::colors::ColorPalette;
 use crate::constants::TOOL_NAME;
 use ratatui::{
     Frame,
@@ -9,39 +10,6 @@ use ratatui::{
     widgets::{Block, Cell, Padding, Paragraph, Row, Scrollbar, ScrollbarOrientation, Table},
 };
 use std::format;
-
-pub struct ColorPalette {
-    pub title: Color,
-    pub outer_border: Color,
-    pub inner_border: Color,
-    pub header_text: Color,
-    pub body_text: Color,
-    pub highlight: Color,
-}
-
-impl ColorPalette {
-    pub fn tokyo_night() -> Self {
-        Self {
-            title: Color::from_u32(0xff9e64),        // orange
-            outer_border: Color::from_u32(0xbb9af7), // purple
-            inner_border: Color::from_u32(0x7aa2f7), // blue
-            header_text: Color::from_u32(0x9ece6a),  // green
-            body_text: Color::from_u32(0xc0caf5),    // foreground
-            highlight: Color::from_u32(0x73daca),    // cyan
-        }
-    }
-
-    pub fn catppuccin_mocha() -> Self {
-        Self {
-            title: Color::from_u32(0xf5e0dc),        // rosewater
-            outer_border: Color::from_u32(0x8aadf4), // blue
-            inner_border: Color::from_u32(0xf38ba8), // red
-            header_text: Color::from_u32(0xa6e3a1),  // green
-            body_text: Color::from_u32(0xcdd6f4),    // text
-            highlight: Color::from_u32(0x94e2d5),    // teal
-        }
-    }
-}
 
 pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_layout = Layout::default()
@@ -187,7 +155,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             let table = Table::new(rows, &constraints)
                 .header(header)
                 .block(Block::default().padding(Padding::horizontal(1)))
-                .highlight_style(Style::default().bg(theme.highlight).fg(Color::Black))
+                .row_highlight_style(Style::default().bg(theme.highlight).fg(Color::Black))
                 .highlight_symbol(">> ");
 
             let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight)
