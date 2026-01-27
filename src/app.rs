@@ -1,7 +1,7 @@
 use crate::sql_session::SqlSession;
 use crate::table::TableView;
 use crate::terminal::SqlTerminal;
-use crate::ui::{ui, ColorPalette};
+use crate::ui::{ColorPalette, ui};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};
 use std::io;
@@ -101,15 +101,20 @@ impl App {
                     }
                     // non navigation related functionality
                     match key_event.code {
-                        KeyCode::Char('q') | KeyCode::Esc => self.screen = Screen::Terminal,
+                        KeyCode::Char('q') | KeyCode::Esc => {
+                            self.screen = Screen::Terminal;
+                            self.table_view = None;
+                        }
                         _ => {}
                     }
                 }
 
                 if let Screen::Help = self.screen {
                     match key_event.code {
-                        KeyCode::Esc => self.screen = Screen::Terminal,
-                        KeyCode::Char('q') => self.screen = Screen::Terminal,
+                        KeyCode::Esc | KeyCode::Char('q') => {
+                            self.screen = Screen::Terminal;
+                            self.table_view = None;
+                        }
                         _ => {}
                     }
                 }
@@ -143,17 +148,45 @@ impl App {
             return;
         }
 
+        self.sql_terminal.add_log_line(format!("> {}", query));
+
         // Toggle operation for select vs other operations
         if query
             .split_whitespace()
             .next()
             .is_some_and(|x| x.to_ascii_uppercase().eq("SELECT"))
         {
-            self.session.select(query.clone());
+            let column_names: Vec<String> = self
+                .session
+                .extract_column_names(&query)
+                .unwrap_or_default();
+            match self.session.select(&query) {
+                Ok(data) => {
+                    if data.is_empty() {
+                        self.sql_terminal
+                            .add_log_line("Query returned 0 rows".to_string());
+                    } else {
+                        self.table_view = Some(TableView::new(column_names, data));
+                        self.screen = Screen::Results;
+                    }
+                }
+                Err(e) => {
+                    self.sql_terminal.add_log_line(format!("Error: {}", e));
+                }
+            }
+        } else {
+            match self.session.execute(&query) {
+                Ok(changes) => {
+                    self.sql_terminal
+                        .add_log_line(format!("{} changes.", changes));
+                }
+                Err(e) => {
+                    self.sql_terminal.add_log_line(format!("Error: {}", e));
+                }
+            }
         }
-        self.session.execute(query);
 
-        //update history
+        //update history for navigation
         self.sql_terminal.add_command();
     }
 }

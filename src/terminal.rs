@@ -15,7 +15,7 @@ pub struct SqlTerminal {
 
 impl SqlTerminal {
     pub fn new() -> Self {
-        let history: Vec<String> = Vec::with_capacity(1);
+        let history: Vec<String> = vec![String::new()];
         SqlTerminal {
             history,
             history_index: 0,
