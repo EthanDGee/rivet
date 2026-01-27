@@ -98,24 +98,24 @@ pub fn ui(frame: &mut Frame, app: &App) {
         let history_area = terminal_chunks[0];
         let input_area = terminal_chunks[1];
 
-        // History
-        let history_lines: Vec<Line> = app
+        // Display Log
+        let log_lines: Vec<Line> = app
             .sql_terminal
-            .history
+            .displayed_lines
             .iter()
-            .map(|line| Line::from(format!("> {}", line)))
+            .map(|line| Line::from(line.clone()))
             .collect();
 
-        let history_paragraph = Paragraph::new(history_lines.clone())
+        let log_paragraph = Paragraph::new(log_lines.clone())
             .block(Block::default().padding(Padding::horizontal(1)))
             .fg(app.theme.body_text)
             .wrap(ratatui::widgets::Wrap { trim: true });
 
         // Auto-scroll to bottom
-        let scroll = (history_lines.len() as u16).saturating_sub(history_area.height);
-        let history_paragraph = history_paragraph.scroll((scroll, 0));
+        let scroll = (log_lines.len() as u16).saturating_sub(history_area.height);
+        let log_paragraph = log_paragraph.scroll((scroll, 0));
 
-        frame.render_widget(history_paragraph, history_area);
+        frame.render_widget(log_paragraph, history_area);
 
         // Input
         let input_text = &app.sql_terminal.input;

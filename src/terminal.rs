@@ -1,10 +1,13 @@
+use std::collections::VecDeque;
 const MAX_HISTORY_LENGTH: usize = 100;
+const MAX_LOG_LINES: usize = 1000;
 
 pub struct SqlTerminal {
     pub history: Vec<String>,
     history_index: usize,
     pub input: String,
     cursor_index: usize,
+    pub displayed_lines: VecDeque<String>,
 }
 
 impl SqlTerminal {
@@ -15,8 +18,17 @@ impl SqlTerminal {
             history_index: 0,
             input: "".to_string(),
             cursor_index: 0,
+            displayed_lines: VecDeque::with_capacity(MAX_LOG_LINES),
         }
     }
+
+    pub fn add_log_line(&mut self, line: String) {
+        if self.displayed_lines.len() == MAX_LOG_LINES {
+            self.displayed_lines.pop_front();
+        }
+        self.displayed_lines.push_back(line);
+    }
+
 
     // input operations
     pub fn move_cursor_left(&mut self) {
