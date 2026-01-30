@@ -5,7 +5,7 @@ mod sql_session;
 mod table;
 mod terminal;
 use app::App;
-mod colors;
+mod themes;
 mod ui;
 
 use std::env;

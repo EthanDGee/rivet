@@ -1,6 +1,6 @@
 use crate::app::{App, Screen};
-use crate::colors::ColorPalette;
 use crate::constants::TOOL_NAME;
+use crate::themes::ColorPalette;
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Margin, Rect},
