@@ -6,6 +6,8 @@ use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifier
 use ratatui::{DefaultTerminal, Frame};
 use std::io;
 
+pub const TOOL_NAME: &str = "rust-cli-tool";
+
 pub struct App {
     pub sql_path: String,
     session: SqlSession,

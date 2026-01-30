@@ -4,7 +4,7 @@ pub mod terminal;
 pub mod themes;
 
 use crate::app::App;
-use crate::constants::TOOL_NAME;
+use crate::app::TOOL_NAME;
 use screen::Screen;
 
 use ratatui::{
