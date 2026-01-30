@@ -1,6 +1,7 @@
 use crate::sql_session::SqlSession;
 use crate::ui::{
-    screen::Screen, table::TableView, terminal::SqlTerminal, themes::ColorPalette, ui,
+    notifications::NotificationList, screen::Screen, table::TableView, terminal::SqlTerminal,
+    themes::ColorPalette, ui,
 };
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};
@@ -14,6 +15,7 @@ pub struct App {
     pub screen: Screen,
     pub sql_terminal: SqlTerminal,
     pub table_view: Option<TableView>,
+    pub notifications: NotificationList,
     pub theme: ColorPalette,
     exit: bool,
 }
@@ -27,6 +29,7 @@ impl App {
             screen: Screen::Terminal,
             sql_terminal: SqlTerminal::new(),
             table_view: None,
+            notifications: NotificationList::new(),
             theme: ColorPalette::nord(),
             exit: false,
         }
@@ -37,6 +40,8 @@ impl App {
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
             self.handle_events()?;
+
+            self.notifications.remove_expired();
 
             match self.screen {
                 Screen::Terminal => {}

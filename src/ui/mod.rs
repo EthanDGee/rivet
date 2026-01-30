@@ -1,3 +1,4 @@
+pub mod notifications;
 pub mod screen;
 pub mod table;
 pub mod terminal;
@@ -75,6 +76,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     frame.render_widget(main_block.clone(), main_area);
     let inner_area = main_block.inner(main_area);
 
+    //TODO: refactor this to use a match screen selector
     if let Screen::Terminal = app.screen {
         let terminal_chunks = Layout::default()
             .direction(Direction::Vertical)
@@ -207,4 +209,14 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
         frame.render_widget(confirmation, floating_window_rect);
     }
+
+    // notifications
+
+    let notification_bar = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Fill(1),
+            Constraint::Length(30),
+            Constraint::Min(3),
+        ]);
 }
