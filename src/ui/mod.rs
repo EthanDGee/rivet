@@ -1,10 +1,11 @@
+pub mod screen;
 pub mod table;
 pub mod terminal;
 pub mod themes;
 
 use crate::app::App;
-use crate::app::Screen;
 use crate::constants::TOOL_NAME;
+use screen::Screen;
 
 use ratatui::{
     Frame,

@@ -1,21 +1,10 @@
 use crate::sql_session::SqlSession;
-use crate::ui::table::TableView;
-use crate::ui::terminal::SqlTerminal;
-use crate::ui::themes::ColorPalette;
-use crate::ui::ui;
+use crate::ui::{
+    screen::Screen, table::TableView, terminal::SqlTerminal, themes::ColorPalette, ui,
+};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};
 use std::io;
-
-// Handle screen states
-#[derive(Debug, Default)]
-pub enum Screen {
-    #[default]
-    Terminal,
-    Results,
-    Help,
-    Exiting,
-}
 
 pub struct App {
     pub sql_path: String,
