@@ -2,7 +2,7 @@ use crate::sql_session::SqlSession;
 use crate::ui::{
     screen::Screen, table::TableView, terminal::SqlTerminal, themes::ColorPalette, ui,
 };
-use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};
 use std::io;
 
@@ -49,79 +49,90 @@ impl App {
     fn handle_events(&mut self) -> io::Result<()> {
         match event::read()? {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-                // Application Wide Commands
-                match (key_event.code, key_event.modifiers) {
-                    (KeyCode::Char('s'), KeyModifiers::CONTROL) => self.session.commit(),
-                    (KeyCode::Char('q'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
-                    (KeyCode::Char('c'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
-                    (KeyCode::Char('h'), KeyModifiers::CONTROL) => self.screen = Screen::Help,
-                    _ => {}
-                }
+                self.handle_global_keys(key_event);
 
-                if let Screen::Terminal = self.screen {
-                    match key_event.code {
-                        KeyCode::Up => self.sql_terminal.decrement_history(),
-                        KeyCode::Down => self.sql_terminal.increment_history(),
-                        KeyCode::Left => self.sql_terminal.move_cursor_left(),
-                        KeyCode::Right => self.sql_terminal.move_cursor_right(),
-                        KeyCode::Char(to_insert) => self.sql_terminal.enter_char(to_insert),
-                        KeyCode::Backspace => self.sql_terminal.delete_char(),
-                        KeyCode::Delete => {
-                            //TODO: resolve issues with delete turning into backspace at end of
-                            //line
-                            self.sql_terminal.move_cursor_right();
-                            self.sql_terminal.delete_char();
-                        }
-                        KeyCode::Enter => {
-                            self.execute_command();
-                        }
-                        _ => {}
-                    }
-                }
-
-                if let Screen::Results = self.screen {
-                    //handle table navigation
-                    if let Some(table_view) = &mut self.table_view {
-                        match key_event.code {
-                            KeyCode::Char('j') | KeyCode::Down => table_view.next_row(),
-                            KeyCode::Char('k') | KeyCode::Up => table_view.previous_row(),
-                            KeyCode::Char('h') | KeyCode::Left => table_view.previous_column(),
-                            KeyCode::Char('l') | KeyCode::Right => table_view.next_column(),
-                            _ => {}
-                        }
-                    }
-                    // non navigation related functionality
-                    match key_event.code {
-                        KeyCode::Char('q') | KeyCode::Esc => {
-                            self.screen = Screen::Terminal;
-                            self.table_view = None;
-                        }
-                        _ => {}
-                    }
-                }
-
-                if let Screen::Help = self.screen {
-                    match key_event.code {
-                        KeyCode::Esc | KeyCode::Char('q') => {
-                            self.screen = Screen::Terminal;
-                            self.table_view = None;
-                        }
-                        _ => {}
-                    }
-                }
-
-                if let Screen::Exiting = self.screen {
-                    match key_event.code {
-                        KeyCode::Char('y') => self.exit(),
-                        KeyCode::Char('n') => self.screen = Screen::Terminal,
-                        _ => {}
-                    }
+                match self.screen {
+                    Screen::Terminal => self.handle_terminal_keys(key_event),
+                    Screen::Results => self.handle_results_keys(key_event),
+                    Screen::Help => self.handle_help_keys(key_event),
+                    Screen::Exiting => self.handle_exiting_keys(key_event),
                 }
             }
             _ => {}
         };
         Ok(())
     }
+
+    fn handle_global_keys(&mut self, key_event: KeyEvent) {
+        match (key_event.code, key_event.modifiers) {
+            (KeyCode::Char('s'), KeyModifiers::CONTROL) => self.session.commit(),
+            (KeyCode::Char('q'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
+            (KeyCode::Char('c'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
+            (KeyCode::Char('h'), KeyModifiers::CONTROL) => self.screen = Screen::Help,
+            _ => {}
+        }
+    }
+
+    fn handle_terminal_keys(&mut self, key_event: KeyEvent) {
+        match key_event.code {
+            KeyCode::Up => self.sql_terminal.decrement_history(),
+            KeyCode::Down => self.sql_terminal.increment_history(),
+            KeyCode::Left => self.sql_terminal.move_cursor_left(),
+            KeyCode::Right => self.sql_terminal.move_cursor_right(),
+            KeyCode::Char(to_insert) => self.sql_terminal.enter_char(to_insert),
+            KeyCode::Backspace => self.sql_terminal.delete_char(),
+            KeyCode::Delete => {
+                //TODO: resolve issues with delete turning into backspace at end of
+                //line
+                self.sql_terminal.move_cursor_right();
+                self.sql_terminal.delete_char();
+            }
+            KeyCode::Enter => {
+                self.execute_command();
+            }
+            _ => {}
+        }
+    }
+
+    fn handle_results_keys(&mut self, key_event: KeyEvent) {
+        //handle table navigation
+        if let Some(table_view) = &mut self.table_view {
+            match key_event.code {
+                KeyCode::Char('j') | KeyCode::Down => table_view.next_row(),
+                KeyCode::Char('k') | KeyCode::Up => table_view.previous_row(),
+                KeyCode::Char('h') | KeyCode::Left => table_view.previous_column(),
+                KeyCode::Char('l') | KeyCode::Right => table_view.next_column(),
+                _ => {}
+            }
+        }
+        // non navigation related functionality
+        match key_event.code {
+            KeyCode::Char('q') | KeyCode::Esc => {
+                self.screen = Screen::Terminal;
+                self.table_view = None;
+            }
+            _ => {}
+        }
+    }
+
+    fn handle_help_keys(&mut self, key_event: KeyEvent) {
+        match key_event.code {
+            KeyCode::Esc | KeyCode::Char('q') => {
+                self.screen = Screen::Terminal;
+                self.table_view = None;
+            }
+            _ => {}
+        }
+    }
+
+    fn handle_exiting_keys(&mut self, key_event: KeyEvent) {
+        match key_event.code {
+            KeyCode::Char('y') => self.exit(),
+            KeyCode::Char('n') => self.screen = Screen::Terminal,
+            _ => {}
+        }
+    }
+
     fn draw(&mut self, frame: &mut Frame) {
         ui(frame, self)
     }
