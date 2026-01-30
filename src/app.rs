@@ -72,7 +72,11 @@ impl App {
 
     fn handle_global_keys(&mut self, key_event: KeyEvent) {
         match (key_event.code, key_event.modifiers) {
-            (KeyCode::Char('s'), KeyModifiers::CONTROL) => self.session.commit(),
+            (KeyCode::Char('s'), KeyModifiers::CONTROL) => {
+                self.notifications
+                    .notify("Save", "Changes to database saved successfully.");
+                self.session.commit()
+            }
             (KeyCode::Char('q'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
             (KeyCode::Char('c'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
             (KeyCode::Char('h'), KeyModifiers::CONTROL) => self.screen = Screen::Help,

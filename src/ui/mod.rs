@@ -76,7 +76,9 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     frame.render_widget(main_block.clone(), main_area);
     let inner_area = main_block.inner(main_area);
 
-    //TODO: refactor this to use a match screen selector
+    //TODO: refactor to use match based screen rendering
+
+    // Screen-specific rendering
     if let Screen::Terminal = app.screen {
         let terminal_chunks = Layout::default()
             .direction(Direction::Vertical)
@@ -128,8 +130,6 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             input_area.x + 1 + (cursor_offset_in_para - scroll_x),
             input_area.y + 1,
         ));
-
-        return;
     }
 
     if let Screen::Results = app.screen {
@@ -184,10 +184,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
                 &mut table_view.scroll_state,
             );
         }
-        return;
-    }
-
-    if let Screen::Help = app.screen {
+    } else if let Screen::Help = app.screen {
         let floating_window_rect = floating_window(frame, &app.theme);
         let commands = Paragraph::new("HELP")
             .centered()
@@ -195,10 +192,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
             .fg(app.theme.body_text);
 
         frame.render_widget(commands, floating_window_rect);
-        return;
-    }
-
-    if let Screen::Exiting = app.screen {
+    } else if let Screen::Exiting = app.screen {
         let floating_window_rect = floating_window(frame, &app.theme);
 
         let confirmation = Paragraph::new(format!("Quit {} Session? y/n", TOOL_NAME))
@@ -210,13 +204,21 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         frame.render_widget(confirmation, floating_window_rect);
     }
 
-    // notifications
+    // Notifications are rendered last, on top of all other UI elements.
+    let notifications = app.notifications.get_notification_widgets(&app.theme);
+    if !notifications.is_empty() {
+        let area = frame.area();
+        const NOTIFICATION_WIDTH: u16 = 32;
+        const NOTIFICATION_HEIGHT: u16 = 5;
 
-    let notification_bar = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Fill(1),
-            Constraint::Length(30),
-            Constraint::Min(3),
-        ]);
+        for (i, notification_widget) in notifications.iter().enumerate() {
+            let notification_rect = Rect {
+                x: area.x + area.width.saturating_sub(NOTIFICATION_WIDTH),
+                y: area.y + (i as u16 * NOTIFICATION_HEIGHT),
+                width: NOTIFICATION_WIDTH,
+                height: NOTIFICATION_HEIGHT,
+            };
+            frame.render_widget(notification_widget.clone(), notification_rect);
+        }
+    }
 }

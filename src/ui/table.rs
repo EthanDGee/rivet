@@ -1,5 +1,4 @@
 use ratatui::widgets::{ScrollbarState, TableState};
-use std::vec;
 
 const ITEM_HEIGHT: usize = 4;
 
