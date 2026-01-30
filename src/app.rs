@@ -1,7 +1,7 @@
-use crate::colors::ColorPalette;
 use crate::sql_session::SqlSession;
-use crate::table::TableView;
-use crate::terminal::SqlTerminal;
+use crate::ui::table::TableView;
+use crate::ui::terminal::SqlTerminal;
+use crate::ui::themes::ColorPalette;
 use crate::ui::ui;
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};

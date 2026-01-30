@@ -1,6 +1,11 @@
-use crate::app::{App, Screen};
+pub mod table;
+pub mod terminal;
+pub mod themes;
+
+use crate::app::App;
+use crate::app::Screen;
 use crate::constants::TOOL_NAME;
-use crate::themes::ColorPalette;
+
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Margin, Rect},
@@ -10,6 +15,7 @@ use ratatui::{
     widgets::{Block, Cell, Padding, Paragraph, Row, Scrollbar, ScrollbarOrientation, Table},
 };
 use std::format;
+use themes::ColorPalette;
 
 pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
     let popup_layout = Layout::default()
