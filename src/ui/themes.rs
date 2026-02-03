@@ -7,6 +7,7 @@ pub struct ColorPalette {
     pub header_text: Color,
     pub body_text: Color,
     pub highlight: Color,
+    pub background: Color,
 }
 
 #[allow(dead_code)]
@@ -19,6 +20,7 @@ impl ColorPalette {
             header_text: Color::from_u32(0x9ece6a),  // green
             body_text: Color::from_u32(0xc0caf5),    // foreground
             highlight: Color::from_u32(0x73daca),    // cyan
+            background: Color::from_u32(0x1a1b26),   // dark
         }
     }
 
@@ -30,6 +32,7 @@ impl ColorPalette {
             header_text: Color::from_u32(0xa6e3a1),  // green
             body_text: Color::from_u32(0xcdd6f4),    // text
             highlight: Color::from_u32(0x94e2d5),    // teal
+            background: Color::from_u32(0x1e1e2e),   // base
         }
     }
 
@@ -41,6 +44,7 @@ impl ColorPalette {
             header_text: Color::from_u32(0x50fa7b),  // green
             body_text: Color::from_u32(0xf8f8f2),    // foreground
             highlight: Color::from_u32(0x8be9fd),    // cyan
+            background: Color::from_u32(0x282a36),   // background
         }
     }
 
@@ -52,6 +56,7 @@ impl ColorPalette {
             header_text: Color::from_u32(0x98971a),  // green
             body_text: Color::from_u32(0xebdbb2),    // foreground
             highlight: Color::from_u32(0x689d6a),    // aqua
+            background: Color::from_u32(0x282828),   // dark0
         }
     }
 
@@ -63,6 +68,7 @@ impl ColorPalette {
             header_text: Color::from_u32(0x859900),  // green
             body_text: Color::from_u32(0x839496),    // base0
             highlight: Color::from_u32(0x2aa198),    // cyan
+            background: Color::from_u32(0x002b36),   // base03
         }
     }
 
@@ -74,6 +80,7 @@ impl ColorPalette {
             header_text: Color::from_u32(0xA3BE8C),  // green
             body_text: Color::from_u32(0xECEFF4),    // foreground
             highlight: Color::from_u32(0x8FBCBB),    // cyan
+            background: Color::from_u32(0x2E3440),   // polar night
         }
     }
 
@@ -85,6 +92,7 @@ impl ColorPalette {
             header_text: Color::from_u32(0xA6E22E),  // green
             body_text: Color::from_u32(0xF8F8F2),    // foreground
             highlight: Color::from_u32(0x66D9EF),    // cyan
+            background: Color::from_u32(0x272822),   // background
         }
     }
 }

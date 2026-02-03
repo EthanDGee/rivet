@@ -54,7 +54,7 @@ impl NotificationList {
                             .padding(Padding::uniform(1)) // Add padding to ensure text doesn't touch border
                             .border_style(Style::default().fg(theme.inner_border)),
                     )
-                    .style(Style::default().fg(theme.body_text)) // Removed explicit background color
+                    .style(Style::default().fg(theme.body_text).bg(theme.background))
                     .wrap(ratatui::widgets::Wrap { trim: false }) // Enable text wrapping
             })
             .collect()
