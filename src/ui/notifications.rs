@@ -43,7 +43,7 @@ impl NotificationList {
         self.list.retain(|notification| !notification.expired());
     }
 
-    pub fn get_notification_widgets(&self, theme: &ColorPalette) -> Vec<Paragraph> {
+    pub fn get_notification_widgets(&self, theme: &ColorPalette) -> Vec<Paragraph<'_>> {
         self.list
             .iter()
             .map(|notification| {

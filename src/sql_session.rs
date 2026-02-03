@@ -4,6 +4,7 @@ use rusqlite::{Connection, types::ValueRef};
 pub struct SqlSession {
     sql_path: String,
     connection: Connection,
+    transaction_active: bool,
     pub read_only: bool,
 }
 
@@ -54,6 +55,7 @@ impl SqlSession {
         SqlSession {
             sql_path,
             connection,
+            transaction_active: false,
             read_only,
         }
     }
@@ -92,7 +94,7 @@ impl SqlSession {
         Ok(result_rows)
     }
 
-    pub fn execute(&self, query: &str) -> Result<usize> {
+    pub fn execute(&mut self, query: &str) -> Result<usize> {
         if query.is_empty() {
             return Err(eyre!("Empty Query"));
         }
@@ -105,6 +107,11 @@ impl SqlSession {
             ));
         }
 
+        if !self.transaction_active {
+            self.connection.execute("BEGIN IMMEDIATE", [])?;
+            self.transaction_active = true;
+        }
+
         let changes = self.connection.execute(query, [])?;
         Ok(changes)
     }
@@ -113,7 +120,17 @@ impl SqlSession {
         self.connection.changes() as usize
     }
 
-    pub fn commit(&self) {
-        let _ = self.connection.execute("COMMIT", []);
+    pub fn commit(&mut self) {
+        if self.transaction_active {
+            let _ = self.connection.execute("COMMIT", []);
+            self.transaction_active = false;
+        }
+    }
+
+    pub fn rollback(&mut self) {
+        if self.transaction_active {
+            let _ = self.connection.execute("ROLLBACK", []);
+            self.transaction_active = false;
+        }
     }
 }
