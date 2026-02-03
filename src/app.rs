@@ -73,9 +73,14 @@ impl App {
     fn handle_global_keys(&mut self, key_event: KeyEvent) {
         match (key_event.code, key_event.modifiers) {
             (KeyCode::Char('s'), KeyModifiers::CONTROL) => {
+                self.session.commit();
                 self.notifications
-                    .notify("Save", "Changes to database saved successfully.");
-                self.session.commit()
+                    .notify("Save", "Changes to database saved successfully.")
+            }
+            (KeyCode::Char('r'), KeyModifiers::CONTROL) => {
+                self.session.rollback();
+                self.notifications
+                    .notify("Rollback", "Staged changes successfully reverted.")
             }
             (KeyCode::Char('q'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
             (KeyCode::Char('c'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
