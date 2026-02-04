@@ -90,12 +90,20 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         const NOTIFICATION_WIDTH: u16 = 32;
         const NOTIFICATION_HEIGHT: u16 = 5;
 
-        for (i, notification_widget) in notifications.iter().enumerate() {
+        for (i, (notification_widget, height)) in notifications
+            .iter()
+            .zip(
+                app.notifications
+                    .get_notification_heights(NOTIFICATION_WIDTH)
+                    .iter(),
+            )
+            .enumerate()
+        {
             let notification_rect = Rect {
                 x: area.x + area.width.saturating_sub(NOTIFICATION_WIDTH),
                 y: area.y + (i as u16 * NOTIFICATION_HEIGHT),
                 width: NOTIFICATION_WIDTH,
-                height: NOTIFICATION_HEIGHT,
+                height: *height,
             };
             frame.render_widget(notification_widget.clone(), notification_rect);
         }

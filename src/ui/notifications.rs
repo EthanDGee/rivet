@@ -43,6 +43,18 @@ impl NotificationList {
         self.list.retain(|notification| !notification.expired());
     }
 
+    pub fn get_notification_heights(&self, width: u16) -> Vec<u16> {
+        self.list
+            .iter()
+            .map(|notification| {
+                let inner_width = width.saturating_sub(2);
+                let char_count = notification.message.chars().count();
+                let wrapped_lines = (char_count / inner_width as usize) as u16 + 1;
+                wrapped_lines + 4
+            })
+            .collect()
+    }
+
     pub fn get_notification_widgets(&self, theme: &ColorPalette) -> Vec<Paragraph<'_>> {
         self.list
             .iter()
@@ -51,11 +63,11 @@ impl NotificationList {
                     .block(
                         Block::bordered()
                             .title(Line::from(notification.title.clone()).centered())
-                            .padding(Padding::uniform(1)) // Add padding to ensure text doesn't touch border
+                            .padding(Padding::uniform(1))
                             .border_style(Style::default().fg(theme.inner_border)),
                     )
                     .style(Style::default().fg(theme.body_text).bg(theme.background))
-                    .wrap(ratatui::widgets::Wrap { trim: false }) // Enable text wrapping
+                    .wrap(ratatui::widgets::Wrap { trim: false })
             })
             .collect()
     }
