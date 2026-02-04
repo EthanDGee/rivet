@@ -4,18 +4,22 @@ mod sql_session;
 use app::App;
 mod ui;
 
-use std::env;
-fn main() -> io::Result<()> {
-    let args: Vec<String> = env::args().collect();
-    let mut read_only: bool = false;
-    if !args.is_empty() {
-        for arg in args {
-            if arg.to_string().eq("-r") {
-                read_only = true;
-            }
-        }
-    }
+use clap::Parser;
 
-    let mut app: App = App::new("test.sqlite3".to_string(), read_only);
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Path to the sqlite file
+    file: String,
+
+    /// Open in read-only mode
+    #[arg(short, long)]
+    read_only: bool,
+}
+
+fn main() -> io::Result<()> {
+    let args = Args::parse();
+
+    let mut app: App = App::new(args.file, args.read_only);
     ratatui::run(|terminal| app.run(terminal))
 }
