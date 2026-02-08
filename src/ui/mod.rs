@@ -3,6 +3,7 @@ pub mod screen;
 pub mod table;
 pub mod terminal;
 pub mod themes;
+mod utils;
 
 use crate::app::App;
 use crate::app::TOOL_NAME;
@@ -17,38 +18,7 @@ use ratatui::{
 use screen::Screen;
 use std::format;
 use std::vec;
-use themes::ColorPalette;
-
-pub fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
-    let popup_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Percentage((100 - percent_y) / 2),
-            Constraint::Percentage(percent_y),
-            Constraint::Percentage((100 - percent_y) / 2),
-        ])
-        .split(r);
-
-    Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage((100 - percent_x) / 2),
-            Constraint::Percentage(percent_x),
-            Constraint::Percentage((100 - percent_x) / 2),
-        ])
-        .split(popup_layout[1])[1] // return the middle chunk
-}
-
-pub fn floating_window(frame: &mut Frame, theme: &ColorPalette) -> Rect {
-    let window = centered_rect(75, 75, frame.area());
-    let border = Block::bordered()
-        .border_style(Style::default().fg(theme.inner_border))
-        .border_set(border::THICK);
-
-    frame.render_widget(border, window);
-
-    window
-}
+use utils::floating_window;
 
 pub fn ui(frame: &mut Frame, app: &mut App) {
     let title = Line::from(
