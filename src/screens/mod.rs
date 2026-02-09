@@ -2,6 +2,7 @@ use crate::ui::themes::ColorPalette;
 use ratatui::Frame;
 pub mod help_screen;
 use crate::screens::help_screen::HelpScreen;
+use crate::screens::quit_screen::QuitScreen;
 
 #[derive(Debug, Default)]
 pub enum Screen {
@@ -9,7 +10,7 @@ pub enum Screen {
     Terminal,
     Results,
     Help(HelpScreen),
-    Exiting,
+    Exiting(QuitScreen),
 }
 
 trait ScreenRenderable {

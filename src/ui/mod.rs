@@ -185,15 +185,3 @@ fn render_results(frame: &mut Frame, app: &mut App, inner_area: Rect) {
         );
     }
 }
-
-fn render_exiting(frame: &mut Frame, app: &mut App) {
-    let floating_window_rect = floating_window(frame, &app.theme);
-
-    let confirmation = Paragraph::new(format!("Quit {} Session? y/n", TOOL_NAME))
-        .centered()
-        .block(Block::default().padding(Padding::uniform(2)))
-        .bold()
-        .fg(app.theme.body_text);
-
-    frame.render_widget(confirmation, floating_window_rect);
-}
