@@ -2,7 +2,7 @@ pub mod notifications;
 pub mod table;
 pub mod terminal;
 pub mod themes;
-mod utils;
+pub mod utils;
 
 use crate::app::App;
 use crate::app::TOOL_NAME;
@@ -184,16 +184,6 @@ fn render_results(frame: &mut Frame, app: &mut App, inner_area: Rect) {
             &mut table_view.scroll_state,
         );
     }
-}
-
-fn render_help(frame: &mut Frame, app: &mut App) {
-    let floating_window_rect = floating_window(frame, &app.theme);
-    let commands = Paragraph::new("HELP")
-        .centered()
-        .block(Block::default().padding(Padding::uniform(2)))
-        .fg(app.theme.body_text);
-
-    frame.render_widget(commands, floating_window_rect);
 }
 
 fn render_exiting(frame: &mut Frame, app: &mut App) {
