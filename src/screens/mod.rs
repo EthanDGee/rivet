@@ -2,15 +2,18 @@ use crate::ui::themes::ColorPalette;
 use ratatui::Frame;
 pub mod help_screen;
 use crate::screens::help_screen::HelpScreen;
+pub mod quit_screen;
 use crate::screens::quit_screen::QuitScreen;
 pub mod terminal_screen;
 use crate::screens::terminal_screen::TerminalScreen;
+pub mod results_screen;
+use crate::screens::results_screen::ResultsScreen;
 
 #[derive(Debug, Default)]
 pub enum Screen {
     #[default]
     Terminal(TerminalScreen),
-    Results,
+    Results(ResultsScreen),
     Help(HelpScreen),
     Exiting(QuitScreen),
 }
