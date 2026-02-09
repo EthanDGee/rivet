@@ -1,5 +1,4 @@
 pub mod notifications;
-pub mod screen;
 pub mod table;
 pub mod terminal;
 pub mod themes;
@@ -7,6 +6,7 @@ mod utils;
 
 use crate::app::App;
 use crate::app::TOOL_NAME;
+use crate::screens::Screen;
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Margin, Rect},
@@ -15,7 +15,6 @@ use ratatui::{
     text::Line,
     widgets::{Block, Cell, Padding, Paragraph, Row, Scrollbar, ScrollbarOrientation, Table},
 };
-use screen::Screen;
 use std::format;
 use std::vec;
 use utils::floating_window;

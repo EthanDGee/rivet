@@ -1,7 +1,8 @@
+use crate::screens::Screen;
 use crate::sql_session::SqlSession;
 use crate::ui::{
-    notifications::NotificationList, screen::Screen, table::TableView, terminal::SqlTerminal,
-    themes::ColorPalette, ui,
+    notifications::NotificationList, table::TableView, terminal::SqlTerminal, themes::ColorPalette,
+    ui,
 };
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};
