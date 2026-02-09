@@ -4,7 +4,7 @@ use ratatui::{
     widgets::{Block, Padding, Paragraph},
 };
 
-use crate::screens::ScreenRenderable;
+use super::ScreenRenderable;
 use crate::ui::themes::ColorPalette;
 use crate::ui::utils::floating_window;
 

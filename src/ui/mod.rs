@@ -1,23 +1,23 @@
+pub mod screens;
 pub mod notifications;
 pub mod table;
-pub mod terminal;
 pub mod themes;
 pub mod utils;
 
 use crate::app::App;
 use crate::app::TOOL_NAME;
-use crate::screens::Screen;
+use crate::ui::screens::Screen;
+use crate::ui::screens::ScreenRenderable;
 use ratatui::{
     Frame,
-    layout::{Constraint, Direction, Layout, Margin, Rect},
-    style::{Color, Modifier, Style, Stylize},
+    layout::{Rect},
+    style::{Style, Stylize},
     symbols::border,
     text::Line,
-    widgets::{Block, Cell, Padding, Paragraph, Row, Scrollbar, ScrollbarOrientation, Table},
+    widgets::{Block},
 };
 use std::format;
 use std::vec;
-use utils::floating_window;
 
 pub fn ui(frame: &mut Frame, app: &mut App) {
     let title = Line::from(
@@ -45,12 +45,16 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     frame.render_widget(main_block.clone(), main_area);
     let inner_area = main_block.inner(main_area);
 
-    match app.screen {
-        Screen::Terminal => render_terminal(frame, app, inner_area),
-        Screen::Results => render_results(frame, app, inner_area),
-        Screen::Help => render_help(frame, app),
-        Screen::Exiting => render_exiting(frame, app),
+    let mut current_screen = std::mem::replace(&mut app.screen, Screen::default());
+
+    match &mut current_screen {
+        Screen::Terminal(terminal_screen) => terminal_screen.render(frame, app, inner_area),
+        Screen::Results(results_screen) => results_screen.render(frame, app, inner_area),
+        Screen::Help(help_screen) => help_screen.render(frame, &app.theme),
+        Screen::Exiting(quit_screen) => quit_screen.render(frame, &app.theme),
     }
+
+    app.screen = current_screen;
 
     // Notifications are rendered last, on top of all other UI elements.
     let notifications = app.notifications.get_notification_widgets(&app.theme);

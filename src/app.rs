@@ -1,4 +1,4 @@
-use crate::screens::Screen;
+use crate::ui::screens::Screen;
 use crate::sql_session::SqlSession;
 use crate::ui::{
     notifications::NotificationList, table::TableView, terminal::SqlTerminal, themes::ColorPalette,
@@ -14,8 +14,6 @@ pub struct App {
     pub sql_path: String,
     session: SqlSession,
     pub screen: Screen,
-    pub sql_terminal: SqlTerminal,
-    pub table_view: Option<TableView>,
     pub notifications: NotificationList,
     pub theme: ColorPalette,
     exit: bool,

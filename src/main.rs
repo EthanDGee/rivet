@@ -2,7 +2,6 @@ use std::io;
 mod app;
 mod sql_session;
 use app::App;
-mod screens;
 mod ui;
 
 use clap::Parser;

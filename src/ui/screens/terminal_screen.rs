@@ -1,15 +1,14 @@
 use ratatui::{
     Frame,
-    layout::{Constraint, Direction, Layout, Margin, Rect},
-    style::{Modifier, Style, Stylize},
+    layout::{Constraint, Direction, Layout, Rect},
+    style::{Style, Stylize},
     symbols::border,
     text::Line,
     widgets::{Block, Padding, Paragraph},
 };
 use std::collections::VecDeque;
 
-use crate::app::{App, TOOL_NAME};
-use crate::ui::themes::ColorPalette;
+use crate::app::App;
 
 const MAX_HISTORY_LENGTH: usize = 100;
 const MAX_LOG_LINES: usize = 1000;

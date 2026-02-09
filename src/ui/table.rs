@@ -2,6 +2,7 @@ use ratatui::widgets::{ScrollbarState, TableState};
 
 const ITEM_HEIGHT: usize = 4;
 
+#[derive(Debug)]
 pub struct TableData {
     pub columns: Vec<String>,
     pub max_lengths: Vec<u8>,
@@ -37,6 +38,7 @@ impl TableData {
     }
 }
 
+#[derive(Debug)]
 pub struct TableView {
     pub data: TableData,
     pub state: TableState,

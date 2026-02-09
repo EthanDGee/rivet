@@ -1,16 +1,12 @@
 use ratatui::{
     Frame,
-    layout::{Constraint, Direction, Layout, Margin, Rect},
-    style::{Color, Modifier, Style, Stylize},
-    symbols::border,
-    text::Line,
-    widgets::{Block, Cell, Padding, Paragraph, Row, Scrollbar, ScrollbarOrientation, Table},
+    layout::{Constraint, Margin, Rect},
+    style::{Color, Modifier, Style},
+    widgets::{Block, Cell, Padding, Row, Scrollbar, ScrollbarOrientation, Table},
 };
 
 use crate::app::App;
-use crate::screens::ScreenRenderable;
 use crate::ui::table::TableView;
-use crate::ui::themes::ColorPalette;
 
 #[derive(Debug, Default)]
 pub struct ResultsScreen {
