@@ -1,9 +1,22 @@
+use ratatui::{
+    Frame,
+    layout::{Constraint, Direction, Layout, Margin, Rect},
+    style::{Modifier, Style, Stylize},
+    symbols::border,
+    text::Line,
+    widgets::{Block, Padding, Paragraph},
+};
 use std::collections::VecDeque;
+
+use crate::app::{App, TOOL_NAME};
+use crate::ui::themes::ColorPalette;
+
 const MAX_HISTORY_LENGTH: usize = 100;
 const MAX_LOG_LINES: usize = 1000;
 const MAX_INPUT_LENGTH: usize = 2048;
 
-pub struct SqlTerminal {
+#[derive(Debug, Default)]
+pub struct TerminalScreen {
     pub history: Vec<String>,
     history_index: usize,
     pub input: String,
@@ -13,10 +26,10 @@ pub struct SqlTerminal {
     input_backup: Option<String>,
 }
 
-impl SqlTerminal {
+impl TerminalScreen {
     pub fn new() -> Self {
         let history: Vec<String> = vec![String::new()];
-        SqlTerminal {
+        TerminalScreen {
             history,
             history_index: 0,
             input: String::new(),
@@ -24,6 +37,58 @@ impl SqlTerminal {
             displayed_lines: VecDeque::with_capacity(MAX_LOG_LINES),
             input_backup: None,
         }
+    }
+
+    pub fn render(&self, frame: &mut Frame, app: &App, inner_area: Rect) {
+        let terminal_chunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Min(0), Constraint::Length(3)])
+            .split(inner_area);
+
+        let history_area = terminal_chunks[0];
+        let input_area = terminal_chunks[1];
+
+        // Display Log
+        let log_lines: Vec<Line> = self
+            .displayed_lines
+            .iter()
+            .map(|line| Line::from(line.clone()))
+            .collect();
+
+        let log_paragraph = Paragraph::new(log_lines.clone())
+            .block(Block::default().padding(Padding::horizontal(1)))
+            .fg(app.theme.body_text)
+            .wrap(ratatui::widgets::Wrap { trim: true });
+
+        // Auto-scroll to bottom
+        let scroll = (log_lines.len() as u16).saturating_sub(history_area.height);
+        let log_paragraph = log_paragraph.scroll((scroll, 0));
+
+        frame.render_widget(log_paragraph, history_area);
+
+        // Input
+        let input_text = &self.input;
+        let visible_width = input_area.width.saturating_sub(2); // inside borders
+
+        let cursor_offset_in_para = (2 + self.cursor_index) as u16;
+        let scroll_x = cursor_offset_in_para.saturating_sub(visible_width);
+
+        let input_paragraph = Paragraph::new(format!("> {}", input_text))
+            .fg(app.theme.header_text)
+            .block(
+                Block::bordered()
+                    .border_style(Style::default().fg(app.theme.inner_border))
+                    .border_set(border::ROUNDED),
+            )
+            .scroll((0, scroll_x));
+
+        frame.render_widget(input_paragraph, input_area);
+
+        // Cursor
+        frame.set_cursor_position((
+            input_area.x + 1 + (cursor_offset_in_para - scroll_x),
+            input_area.y + 1,
+        ));
     }
 
     pub fn add_log_line(&mut self, line: String) {

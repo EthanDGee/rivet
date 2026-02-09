@@ -79,59 +79,6 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     }
 }
 
-fn render_terminal(frame: &mut Frame, app: &mut App, inner_area: Rect) {
-    let terminal_chunks = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Min(0), Constraint::Length(3)])
-        .split(inner_area);
-
-    let history_area = terminal_chunks[0];
-    let input_area = terminal_chunks[1];
-
-    // Display Log
-    let log_lines: Vec<Line> = app
-        .sql_terminal
-        .displayed_lines
-        .iter()
-        .map(|line| Line::from(line.clone()))
-        .collect();
-
-    let log_paragraph = Paragraph::new(log_lines.clone())
-        .block(Block::default().padding(Padding::horizontal(1)))
-        .fg(app.theme.body_text)
-        .wrap(ratatui::widgets::Wrap { trim: true });
-
-    // Auto-scroll to bottom
-    let scroll = (log_lines.len() as u16).saturating_sub(history_area.height);
-    let log_paragraph = log_paragraph.scroll((scroll, 0));
-
-    frame.render_widget(log_paragraph, history_area);
-
-    // Input
-    let input_text = &app.sql_terminal.input;
-    let visible_width = input_area.width.saturating_sub(2); // inside borders
-
-    let cursor_offset_in_para = (2 + app.sql_terminal.cursor_index) as u16;
-    let scroll_x = cursor_offset_in_para.saturating_sub(visible_width);
-
-    let input_paragraph = Paragraph::new(format!("> {}", input_text))
-        .fg(app.theme.header_text)
-        .block(
-            Block::bordered()
-                .border_style(Style::default().fg(app.theme.inner_border))
-                .border_set(border::ROUNDED),
-        )
-        .scroll((0, scroll_x));
-
-    frame.render_widget(input_paragraph, input_area);
-
-    // Cursor
-    frame.set_cursor_position((
-        input_area.x + 1 + (cursor_offset_in_para - scroll_x),
-        input_area.y + 1,
-    ));
-}
-
 fn render_results(frame: &mut Frame, app: &mut App, inner_area: Rect) {
     if let Some(table_view) = &mut app.table_view {
         let theme = &app.theme;
