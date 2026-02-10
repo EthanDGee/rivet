@@ -1,14 +1,14 @@
 use crate::sql_session::SqlSession;
 use crate::ui::screens::{
-    help_screen::HelpScreen, quit_screen::QuitScreen, results_screen::ResultsScreen,
-    terminal_screen::TerminalScreen, Screen,
+    Screen, help_screen::HelpScreen, quit_screen::QuitScreen, results_screen::ResultsScreen,
+    terminal_screen::TerminalScreen,
 };
 use crate::ui::{notifications::NotificationList, table::TableView, themes::ColorPalette, ui};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};
 use std::io;
 
-pub const TOOL_NAME: &str = "rust-cli-tool";
+pub const TOOL_NAME: &str = "rivet";
 
 pub struct App {
     pub sql_path: String,

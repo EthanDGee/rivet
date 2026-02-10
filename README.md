@@ -1,4 +1,4 @@
-# rust-sqlite-cli
+# rivet
 
 A simple, terminal-based UI tool for interacting with SQLite databases, built with Rust. It provides a safe way to execute queries with a transaction-based workflow, preventing accidental changes.
 
@@ -23,7 +23,7 @@ The application is built using `ratatui`, a Rust library for building Terminal U
 
 ### Safety First: Transactions
 
-To prevent accidental modifications to your database, `rust-sqlite-cli` uses a transaction-based workflow.
+To prevent accidental modifications to your database, `rivet` uses a transaction-based workflow.
 
 *   When you execute your first non-`SELECT` query (e.g., `INSERT`, `UPDATE`, `DELETE`, `CREATE`), a `BEGIN IMMEDIATE` transaction is automatically started.
 *   All subsequent changes you make are part of this transaction and are held in a pending state. They are **not** yet written to the database file.
@@ -48,8 +48,8 @@ This project is currently in an **alpha state**. This means it is under active d
 
 1.  Clone the repository:
     ```sh
-    git clone https://github.com/your-username/rust-sqlite-cli.git
-    cd rust-sqlite-cli
+    git clone https://github.com/your-username/rivet.git
+    cd rivet
     ```
 2.  Build the project:
     ```sh
@@ -58,14 +58,14 @@ This project is currently in an **alpha state**. This means it is under active d
 3.  Run the application:
     You must provide a path to a SQLite database file.
     ```sh
-    ./target/release/rust-sqlite-cli my_database.sqlite3
+    ./target/release/rivet my_database.sqlite3
     ```
 
 ## Usage
 
 ### Command-line Arguments
 
-`./target/release/rust-sqlite-cli [OPTIONS] <FILE>`
+`./target/release/rivet [OPTIONS] <FILE>`
 
 **Arguments:**
 

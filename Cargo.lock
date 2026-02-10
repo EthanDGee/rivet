@@ -1215,6 +1215,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
 
 [[package]]
+name = "rivet"
+version = "0.3.1"
+dependencies = [
+ "clap",
+ "color-eyre",
+ "crossterm",
+ "itertools",
+ "ratatui",
+ "rusqlite",
+ "unicode-width",
+]
+
+[[package]]
 name = "rsqlite-vfs"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1237,19 +1250,6 @@ dependencies = [
  "libsqlite3-sys",
  "smallvec",
  "sqlite-wasm-rs",
-]
-
-[[package]]
-name = "rust-sqlite-cli"
-version = "0.1.0"
-dependencies = [
- "clap",
- "color-eyre",
- "crossterm",
- "itertools",
- "ratatui",
- "rusqlite",
- "unicode-width",
 ]
 
 [[package]]
