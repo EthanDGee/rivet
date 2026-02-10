@@ -1,9 +1,9 @@
-use crate::ui::screens::Screen;
 use crate::sql_session::SqlSession;
-use crate::ui::{
-    notifications::NotificationList, table::TableView, terminal::SqlTerminal, themes::ColorPalette,
-    ui,
+use crate::ui::screens::{
+    help_screen::HelpScreen, quit_screen::QuitScreen, results_screen::ResultsScreen,
+    terminal_screen::TerminalScreen, Screen,
 };
+use crate::ui::{notifications::NotificationList, table::TableView, themes::ColorPalette, ui};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};
 use std::io;
@@ -25,9 +25,7 @@ impl App {
         App {
             sql_path,
             session: sql_session,
-            screen: Screen::Terminal,
-            sql_terminal: SqlTerminal::new(),
-            table_view: None,
+            screen: Screen::Terminal(TerminalScreen::new()),
             notifications: NotificationList::new(),
             theme: ColorPalette::nord(),
             exit: false,
@@ -42,11 +40,11 @@ impl App {
 
             self.notifications.remove_expired();
 
-            match self.screen {
-                Screen::Terminal => {}
-                Screen::Results => {}
-                Screen::Help => {}
-                Screen::Exiting => {}
+            match &mut self.screen {
+                Screen::Terminal(_terminal_screen) => {}
+                Screen::Results(_results_screen) => {}
+                Screen::Help(_help_screen) => {}
+                Screen::Exiting(_quit_screen) => {}
             }
         }
         Ok(())
@@ -58,10 +56,10 @@ impl App {
                 self.handle_global_keys(key_event);
 
                 match self.screen {
-                    Screen::Terminal => self.handle_terminal_keys(key_event),
-                    Screen::Results => self.handle_results_keys(key_event),
-                    Screen::Help => self.handle_help_keys(key_event),
-                    Screen::Exiting => self.handle_exiting_keys(key_event),
+                    Screen::Terminal(_) => self.handle_terminal_keys(key_event),
+                    Screen::Results(_) => self.handle_results_keys(key_event),
+                    Screen::Help(_) => self.handle_help_keys(key_event),
+                    Screen::Exiting(_) => self.handle_exiting_keys(key_event),
                 }
             }
             _ => {}
@@ -81,60 +79,70 @@ impl App {
                 self.notifications
                     .notify("Rollback", "Staged changes successfully reverted.")
             }
-            (KeyCode::Char('q'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
-            (KeyCode::Char('c'), KeyModifiers::CONTROL) => self.screen = Screen::Exiting,
-            (KeyCode::Char('h'), KeyModifiers::CONTROL) => self.screen = Screen::Help,
+            (KeyCode::Char('q'), KeyModifiers::CONTROL) => {
+                self.screen = Screen::Exiting(QuitScreen::new())
+            }
+            (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
+                self.screen = Screen::Exiting(QuitScreen::new())
+            }
+            (KeyCode::Char('h'), KeyModifiers::CONTROL) => {
+                self.screen = Screen::Help(HelpScreen::new())
+            }
             _ => {}
         }
     }
 
     fn handle_terminal_keys(&mut self, key_event: KeyEvent) {
-        match key_event.code {
-            KeyCode::Up => self.sql_terminal.decrement_history(),
-            KeyCode::Down => self.sql_terminal.increment_history(),
-            KeyCode::Left => self.sql_terminal.move_cursor_left(),
-            KeyCode::Right => self.sql_terminal.move_cursor_right(),
-            KeyCode::Char(to_insert) => self.sql_terminal.enter_char(to_insert),
-            KeyCode::Backspace => self.sql_terminal.delete_char(),
-            KeyCode::Delete => {
-                //TODO: resolve issues with delete turning into backspace at end of
-                //line
-                self.sql_terminal.move_cursor_right();
-                self.sql_terminal.delete_char();
+        if let Screen::Terminal(terminal_screen) = &mut self.screen {
+            match key_event.code {
+                KeyCode::Up => terminal_screen.decrement_history(),
+                KeyCode::Down => terminal_screen.increment_history(),
+                KeyCode::Left => terminal_screen.move_cursor_left(),
+                KeyCode::Right => terminal_screen.move_cursor_right(),
+                KeyCode::Char(to_insert) => terminal_screen.enter_char(to_insert),
+                KeyCode::Backspace => terminal_screen.delete_char(),
+                KeyCode::Delete => {
+                    //TODO: resolve issues with delete turning into backspace at end of
+                    //line
+                    terminal_screen.move_cursor_right();
+                    terminal_screen.delete_char();
+                }
+                KeyCode::Enter => {
+                    if let Some(new_screen) = self.execute_command() {
+                        self.screen = new_screen;
+                    }
+                }
+                _ => {}
             }
-            KeyCode::Enter => {
-                self.execute_command();
-            }
-            _ => {}
         }
     }
 
     fn handle_results_keys(&mut self, key_event: KeyEvent) {
-        //handle table navigation
-        if let Some(table_view) = &mut self.table_view {
+        if let Screen::Results(results_screen) = &mut self.screen {
+            //handle table navigation
+            if let Some(table_view) = &mut results_screen.table_view {
+                match key_event.code {
+                    KeyCode::Char('j') | KeyCode::Down => table_view.next_row(),
+                    KeyCode::Char('k') | KeyCode::Up => table_view.previous_row(),
+                    KeyCode::Char('h') | KeyCode::Left => table_view.previous_column(),
+                    KeyCode::Char('l') | KeyCode::Right => table_view.next_column(),
+                    _ => {}
+                }
+            }
+            // non navigation related functionality
             match key_event.code {
-                KeyCode::Char('j') | KeyCode::Down => table_view.next_row(),
-                KeyCode::Char('k') | KeyCode::Up => table_view.previous_row(),
-                KeyCode::Char('h') | KeyCode::Left => table_view.previous_column(),
-                KeyCode::Char('l') | KeyCode::Right => table_view.next_column(),
+                KeyCode::Char('q') | KeyCode::Esc => {
+                    self.screen = Screen::Terminal(TerminalScreen::new());
+                }
                 _ => {}
             }
-        }
-        // non navigation related functionality
-        match key_event.code {
-            KeyCode::Char('q') | KeyCode::Esc => {
-                self.screen = Screen::Terminal;
-                self.table_view = None;
-            }
-            _ => {}
         }
     }
 
     fn handle_help_keys(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Esc | KeyCode::Char('q') => {
-                self.screen = Screen::Terminal;
-                self.table_view = None;
+                self.screen = Screen::Terminal(TerminalScreen::new());
             }
             _ => {}
         }
@@ -143,7 +151,7 @@ impl App {
     fn handle_exiting_keys(&mut self, key_event: KeyEvent) {
         match key_event.code {
             KeyCode::Char('y') => self.exit(),
-            KeyCode::Char('n') => self.screen = Screen::Terminal,
+            KeyCode::Char('n') => self.screen = Screen::Terminal(TerminalScreen::new()),
             _ => {}
         }
     }
@@ -159,13 +167,19 @@ impl App {
         self.exit = true;
     }
 
-    fn execute_command(&mut self) {
-        let query = self.sql_terminal.input.to_string();
+    fn execute_command(&mut self) -> Option<Screen> {
+        // This command can only be executed from the Terminal screen
+        let Screen::Terminal(terminal_screen) = &mut self.screen else {
+            return None;
+        };
+
+        let query = terminal_screen.input.to_string();
         if query.is_empty() {
-            return;
+            terminal_screen.add_command();
+            return None;
         }
 
-        self.sql_terminal.add_log_line(format!("> {}", query));
+        terminal_screen.add_log_line(format!("> {}", query));
 
         // Toggle operation for select vs other operations
         if query
@@ -180,30 +194,33 @@ impl App {
             match self.session.select(&query) {
                 Ok(data) => {
                     if data.is_empty() {
-                        self.sql_terminal
-                            .add_log_line("Query returned 0 rows".to_string());
+                        terminal_screen.add_log_line("Query returned 0 rows".to_string());
+                        terminal_screen.add_command();
+                        None
                     } else {
-                        self.table_view = Some(TableView::new(column_names, data));
-                        self.screen = Screen::Results;
+                        let mut results_screen = ResultsScreen::new();
+                        results_screen.table_view = Some(TableView::new(column_names, data));
+                        terminal_screen.add_command();
+                        Some(Screen::Results(results_screen))
                     }
                 }
                 Err(e) => {
-                    self.sql_terminal.add_log_line(format!("Error: {}", e));
+                    terminal_screen.add_log_line(format!("Error: {}", e));
+                    terminal_screen.add_command();
+                    None
                 }
             }
         } else {
             match self.session.execute(&query) {
                 Ok(changes) => {
-                    self.sql_terminal
-                        .add_log_line(format!("{} changes.", changes));
+                    terminal_screen.add_log_line(format!("{} changes.", changes));
                 }
                 Err(e) => {
-                    self.sql_terminal.add_log_line(format!("Error: {}", e));
+                    terminal_screen.add_log_line(format!("Error: {}", e));
                 }
             }
+            terminal_screen.add_command();
+            None
         }
-
-        //update history for navigation
-        self.sql_terminal.add_command();
     }
 }

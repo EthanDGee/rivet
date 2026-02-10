@@ -1,5 +1,5 @@
-pub mod screens;
 pub mod notifications;
+pub mod screens;
 pub mod table;
 pub mod themes;
 pub mod utils;
@@ -10,11 +10,11 @@ use crate::ui::screens::Screen;
 use crate::ui::screens::ScreenRenderable;
 use ratatui::{
     Frame,
-    layout::{Rect},
+    layout::Rect,
     style::{Style, Stylize},
     symbols::border,
     text::Line,
-    widgets::{Block},
+    widgets::Block,
 };
 use std::format;
 use std::vec;
@@ -45,7 +45,7 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     frame.render_widget(main_block.clone(), main_area);
     let inner_area = main_block.inner(main_area);
 
-    let mut current_screen = std::mem::replace(&mut app.screen, Screen::default());
+    let mut current_screen = std::mem::take(&mut app.screen);
 
     match &mut current_screen {
         Screen::Terminal(terminal_screen) => terminal_screen.render(frame, app, inner_area),
