@@ -2,13 +2,10 @@ use color_eyre::eyre::{Result, eyre};
 use rusqlite::{Connection, types::ValueRef};
 
 pub struct SqlSession {
-    sql_path: String,
     connection: Connection,
     transaction_active: bool,
     pub read_only: bool,
 }
-
-
 
 impl SqlSession {
     pub fn extract_column_names(&self, query: &str) -> Result<Vec<String>> {
@@ -53,7 +50,6 @@ impl SqlSession {
         }
 
         SqlSession {
-            sql_path,
             connection,
             transaction_active: false,
             read_only,
@@ -65,7 +61,7 @@ impl SqlSession {
             return Err(eyre!("Empty Query"));
         }
 
-        let mut statement = match self.connection.prepare(&query) {
+        let mut statement = match self.connection.prepare(query) {
             Ok(statement) => statement,
             Err(e) => {
                 return Err(eyre!("SELECT query could not be executed\n{}", e));
@@ -114,10 +110,6 @@ impl SqlSession {
 
         let changes = self.connection.execute(query, [])?;
         Ok(changes)
-    }
-
-    pub fn get_change_count(&self) -> usize {
-        self.connection.changes() as usize
     }
 
     pub fn commit(&mut self) {
