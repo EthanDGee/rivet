@@ -1,13 +1,13 @@
-pub mod notifications;
+pub mod notification_widgets;
 pub mod screens;
 pub mod table;
 pub mod themes;
 pub mod utils;
-
 use crate::app::App;
 use crate::app::TOOL_NAME;
 use crate::ui::screens::Screen;
 use crate::ui::screens::ScreenRenderable;
+use notification_widgets::{NOTIFICATION_HEIGHT, NOTIFICATION_WIDTH, render_notification};
 use ratatui::{
     Frame,
     layout::Rect,
@@ -56,15 +56,17 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
 
     app.screen = current_screen;
 
-    // Notifications are rendered last, on top of all other UI elements.
-    let notifications = app.notifications.get_notification_widgets(&app.theme);
-    if !notifications.is_empty() {
-        let area = frame.area();
-        const NOTIFICATION_WIDTH: u16 = 32;
-        const NOTIFICATION_HEIGHT: u16 = 5;
-
-        for (i, (notification_widget, height)) in notifications
+    if !app.notifications.list.is_empty() {
+        // render and return
+        // Notifications are rendered last, on top of all other UI elements.
+        let notification_widgets = app
+            .notifications
+            .list
             .iter()
+            .map(|notification| render_notification(notification, &app.theme));
+
+        let area = frame.area();
+        for (i, (notification_widget, height)) in notification_widgets
             .zip(
                 app.notifications
                     .get_notification_heights(NOTIFICATION_WIDTH)

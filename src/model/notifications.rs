@@ -1,12 +1,8 @@
-use super::themes::ColorPalette;
-use ratatui::style::Style;
-use ratatui::text::Line;
-use ratatui::widgets::{Block, Padding, Paragraph};
 use std::time::{Duration, Instant};
 
 const TIME_LIMIT: Duration = Duration::from_secs(5);
 
-struct Notification {
+pub struct Notification {
     pub title: String,
     pub message: String,
     time_stamp: Instant,
@@ -27,7 +23,7 @@ impl Notification {
 }
 
 pub struct NotificationList {
-    list: Vec<Notification>,
+    pub list: Vec<Notification>,
 }
 
 impl NotificationList {
@@ -51,23 +47,6 @@ impl NotificationList {
                 let char_count = notification.message.chars().count();
                 let wrapped_lines = (char_count / inner_width as usize) as u16 + 1;
                 wrapped_lines + 4
-            })
-            .collect()
-    }
-
-    pub fn get_notification_widgets(&self, theme: &ColorPalette) -> Vec<Paragraph<'_>> {
-        self.list
-            .iter()
-            .map(|notification| {
-                Paragraph::new(Line::from(notification.message.clone()))
-                    .block(
-                        Block::bordered()
-                            .title(Line::from(notification.title.clone()).centered())
-                            .padding(Padding::uniform(1))
-                            .border_style(Style::default().fg(theme.inner_border)),
-                    )
-                    .style(Style::default().fg(theme.body_text).bg(theme.background))
-                    .wrap(ratatui::widgets::Wrap { trim: false })
             })
             .collect()
     }

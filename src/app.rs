@@ -1,9 +1,10 @@
+use crate::model::notifications::NotificationList;
 use crate::sql_session::SqlSession;
 use crate::ui::screens::{
     Screen, help_screen::HelpScreen, quit_screen::QuitScreen, results_screen::ResultsScreen,
     terminal_screen::TerminalScreen,
 };
-use crate::ui::{notifications::NotificationList, table::TableView, themes::ColorPalette, ui};
+use crate::ui::{table::TableView, themes::ColorPalette, ui};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame};
 use std::io;
