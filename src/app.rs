@@ -1,5 +1,5 @@
 use crate::model::notifications::NotificationList;
-use crate::sql_session::SqlSession;
+use crate::model::sql_session::SqlSession;
 use crate::ui::screens::{
     Screen, help_screen::HelpScreen, quit_screen::QuitScreen, results_screen::ResultsScreen,
     terminal_screen::TerminalScreen,

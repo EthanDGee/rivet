@@ -1,6 +1,5 @@
 use std::io;
 mod app;
-mod sql_session;
 use app::App;
 mod model;
 mod ui;
