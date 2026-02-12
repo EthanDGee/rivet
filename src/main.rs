@@ -1,6 +1,7 @@
 use std::io;
 mod app;
 use app::App;
+mod actions;
 mod model;
 mod ui;
 

@@ -13,7 +13,7 @@ pub const TOOL_NAME: &str = "rivet";
 
 pub struct App {
     pub sql_path: String,
-    session: SqlSession,
+    pub session: SqlSession,
     pub screen: Screen,
     pub notifications: NotificationList,
     pub theme: ColorPalette,
