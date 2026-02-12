@@ -13,19 +13,23 @@ pub enum GlobalActions {
     Help,
 }
 
+fn save(app: &mut App) {
+    app.session.commit();
+    app.notifications
+        .notify("Save", "Changes to database saved successfully.")
+}
+
+fn rollback(app: &mut App) {
+    app.session.rollback();
+    app.notifications
+        .notify("Rollback", "Staged changes successfully reverted.")
+}
+
 impl Actionable for GlobalActions {
     fn take_action(app: &mut App, key_event: KeyEvent) {
         match (key_event.code, key_event.modifiers) {
-            (KeyCode::Char('s'), KeyModifiers::CONTROL) => {
-                app.session.commit();
-                app.notifications
-                    .notify("Save", "Changes to database saved successfully.")
-            }
-            (KeyCode::Char('r'), KeyModifiers::CONTROL) => {
-                app.session.rollback();
-                app.notifications
-                    .notify("Rollback", "Staged changes successfully reverted.")
-            }
+            (KeyCode::Char('s'), KeyModifiers::CONTROL) => save(app),
+            (KeyCode::Char('r'), KeyModifiers::CONTROL) => rollback(app),
             (KeyCode::Char('q'), KeyModifiers::CONTROL) => {
                 app.screen = Screen::Exiting(QuitScreen::new())
             }
