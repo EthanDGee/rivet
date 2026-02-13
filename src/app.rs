@@ -1,11 +1,11 @@
 use crate::model::notifications::NotificationList;
 use crate::model::sql_session::SqlSession;
 use crate::ui::screens::{
-    Screen, help_screen::HelpScreen, quit_screen::QuitScreen, results_screen::ResultsScreen,
+    Screen,
     terminal_screen::TerminalScreen,
 };
-use crate::ui::{table::TableView, themes::ColorPalette, ui};
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crate::ui::{themes::ColorPalette, ui};
+use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{DefaultTerminal, Frame};
 use std::io;
 
@@ -54,13 +54,14 @@ impl App {
     fn handle_events(&mut self) -> io::Result<()> {
         match event::read()? {
             Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
-                self.handle_global_keys(key_event);
+                // self.handle_global_keys(key_event);
 
                 match self.screen {
-                    Screen::Terminal(_) => self.handle_terminal_keys(key_event),
+                    // Screen::Terminal(_) => self.handle_terminal_keys(key_event),
                     Screen::Results(_) => self.handle_results_keys(key_event),
                     Screen::Help(_) => self.handle_help_keys(key_event),
                     Screen::Exiting(_) => self.handle_exiting_keys(key_event),
+                    _ => {}
                 }
             }
             _ => {}
@@ -68,55 +69,55 @@ impl App {
         Ok(())
     }
 
-    fn handle_global_keys(&mut self, key_event: KeyEvent) {
-        match (key_event.code, key_event.modifiers) {
-            (KeyCode::Char('s'), KeyModifiers::CONTROL) => {
-                self.session.commit();
-                self.notifications
-                    .notify("Save", "Changes to database saved successfully.")
-            }
-            (KeyCode::Char('r'), KeyModifiers::CONTROL) => {
-                self.session.rollback();
-                self.notifications
-                    .notify("Rollback", "Staged changes successfully reverted.")
-            }
-            (KeyCode::Char('q'), KeyModifiers::CONTROL) => {
-                self.screen = Screen::Exiting(QuitScreen::new())
-            }
-            (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
-                self.screen = Screen::Exiting(QuitScreen::new())
-            }
-            (KeyCode::Char('h'), KeyModifiers::CONTROL) => {
-                self.screen = Screen::Help(HelpScreen::new())
-            }
-            _ => {}
-        }
-    }
-
-    fn handle_terminal_keys(&mut self, key_event: KeyEvent) {
-        if let Screen::Terminal(terminal_screen) = &mut self.screen {
-            match key_event.code {
-                KeyCode::Up => terminal_screen.decrement_history(),
-                KeyCode::Down => terminal_screen.increment_history(),
-                KeyCode::Left => terminal_screen.move_cursor_left(),
-                KeyCode::Right => terminal_screen.move_cursor_right(),
-                KeyCode::Char(to_insert) => terminal_screen.enter_char(to_insert),
-                KeyCode::Backspace => terminal_screen.delete_char(),
-                KeyCode::Delete => {
-                    //TODO: resolve issues with delete turning into backspace at end of
-                    //line
-                    terminal_screen.move_cursor_right();
-                    terminal_screen.delete_char();
-                }
-                KeyCode::Enter => {
-                    if let Some(new_screen) = self.execute_command() {
-                        self.screen = new_screen;
-                    }
-                }
-                _ => {}
-            }
-        }
-    }
+    // fn handle_global_keys(&mut self, key_event: KeyEvent) {
+    //     match (key_event.code, key_event.modifiers) {
+    //         (KeyCode::Char('s'), KeyModifiers::CONTROL) => {
+    //             self.session.commit();
+    //             self.notifications
+    //                 .notify("Save", "Changes to database saved successfully.")
+    //         }
+    //         (KeyCode::Char('r'), KeyModifiers::CONTROL) => {
+    //             self.session.rollback();
+    //             self.notifications
+    //                 .notify("Rollback", "Staged changes successfully reverted.")
+    //         }
+    //         (KeyCode::Char('q'), KeyModifiers::CONTROL) => {
+    //             self.screen = Screen::Exiting(QuitScreen::new())
+    //         }
+    //         (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
+    //             self.screen = Screen::Exiting(QuitScreen::new())
+    //         }
+    //         (KeyCode::Char('h'), KeyModifiers::CONTROL) => {
+    //             self.screen = Screen::Help(HelpScreen::new())
+    //         }
+    //         _ => {}
+    //     }
+    // }
+    //
+    // fn handle_terminal_keys(&mut self, key_event: KeyEvent) {
+    //     if let Screen::Terminal(terminal_screen) = &mut self.screen {
+    //         match key_event.code {
+    //             KeyCode::Up => terminal_screen.decrement_history(),
+    //             KeyCode::Down => terminal_screen.increment_history(),
+    //             KeyCode::Left => terminal_screen.move_cursor_left(),
+    //             KeyCode::Right => terminal_screen.move_cursor_right(),
+    //             KeyCode::Char(to_insert) => terminal_screen.enter_char(to_insert),
+    //             KeyCode::Backspace => terminal_screen.delete_char(),
+    //             KeyCode::Delete => {
+    //                 //TODO: resolve issues with delete turning into backspace at end of
+    //                 //line
+    //                 terminal_screen.move_cursor_right();
+    //                 terminal_screen.delete_char();
+    //             }
+    //             KeyCode::Enter => {
+    //                 if let Some(new_screen) = self.execute_command() {
+    //                     self.screen = new_screen;
+    //                 }
+    //             }
+    //             _ => {}
+    //         }
+    //     }
+    // }
 
     fn handle_results_keys(&mut self, key_event: KeyEvent) {
         if let Screen::Results(results_screen) = &mut self.screen {
@@ -166,62 +167,5 @@ impl App {
         // TODO: flush cache to prevent unwanted changes being saved in future sessions
 
         self.exit = true;
-    }
-
-    fn execute_command(&mut self) -> Option<Screen> {
-        // This command can only be executed from the Terminal screen
-        let Screen::Terminal(terminal_screen) = &mut self.screen else {
-            return None;
-        };
-
-        let query = terminal_screen.input.to_string();
-        if query.is_empty() {
-            terminal_screen.add_command();
-            return None;
-        }
-
-        terminal_screen.add_log_line(format!("> {}", query));
-
-        // Toggle operation for select vs other operations
-        if query
-            .split_whitespace()
-            .next()
-            .is_some_and(|x| x.to_ascii_uppercase().eq("SELECT"))
-        {
-            let column_names: Vec<String> = self
-                .session
-                .extract_column_names(&query)
-                .unwrap_or_default();
-            match self.session.select(&query) {
-                Ok(data) => {
-                    if data.is_empty() {
-                        terminal_screen.add_log_line("Query returned 0 rows".to_string());
-                        terminal_screen.add_command();
-                        None
-                    } else {
-                        let mut results_screen = ResultsScreen::new();
-                        results_screen.table_view = Some(TableView::new(column_names, data));
-                        terminal_screen.add_command();
-                        Some(Screen::Results(results_screen))
-                    }
-                }
-                Err(e) => {
-                    terminal_screen.add_log_line(format!("Error: {}", e));
-                    terminal_screen.add_command();
-                    None
-                }
-            }
-        } else {
-            match self.session.execute(&query) {
-                Ok(changes) => {
-                    terminal_screen.add_log_line(format!("{} changes.", changes));
-                }
-                Err(e) => {
-                    terminal_screen.add_log_line(format!("Error: {}", e));
-                }
-            }
-            terminal_screen.add_command();
-            None
-        }
     }
 }
