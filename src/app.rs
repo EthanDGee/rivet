@@ -1,9 +1,6 @@
 use crate::model::notifications::NotificationList;
 use crate::model::sql_session::SqlSession;
-use crate::ui::screens::{
-    Screen,
-    terminal_screen::TerminalScreen,
-};
+use crate::ui::screens::{Screen, terminal_screen::TerminalScreen};
 use crate::ui::{themes::ColorPalette, ui};
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
 use ratatui::{DefaultTerminal, Frame};
@@ -115,31 +112,31 @@ impl App {
     //                 }
     //             }
     //             _ => {}
+    //         //         }
+    //         //     }
+    //         // }
+    //
+    //         fn handle_results_keys(&mut self, key_event: KeyEvent) {
+    //             if let Screen::Results(results_screen) = &mut self.screen {
+    //                 //handle table navigation
+    //                 if let Some(table_view) = &mut results_screen.table_view {
+    //                     match key_event.code {
+    //                         KeyCode::Char('j') | KeyCode::Down => table_view.next_row(),
+    //                         KeyCode::Char('k') | KeyCode::Up => table_view.previous_row(),
+    //                         KeyCode::Char('h') | KeyCode::Left => table_view.previous_column(),
+    //                         KeyCode::Char('l') | KeyCode::Right => table_view.next_column(),
+    //                         _ => {}
+    //                     }
+    //                 }
+    //                 // non navigation related functionality
+    //                 match key_event.code {
+    //                     KeyCode::Char('q') | KeyCode::Esc => {
+    //                         self.screen = Screen::Terminal(TerminalScreen::new());
+    //                     }
+    //                     _ => {}
+    //                 }
+    //             }
     //         }
-    //     }
-    // }
-
-    fn handle_results_keys(&mut self, key_event: KeyEvent) {
-        if let Screen::Results(results_screen) = &mut self.screen {
-            //handle table navigation
-            if let Some(table_view) = &mut results_screen.table_view {
-                match key_event.code {
-                    KeyCode::Char('j') | KeyCode::Down => table_view.next_row(),
-                    KeyCode::Char('k') | KeyCode::Up => table_view.previous_row(),
-                    KeyCode::Char('h') | KeyCode::Left => table_view.previous_column(),
-                    KeyCode::Char('l') | KeyCode::Right => table_view.next_column(),
-                    _ => {}
-                }
-            }
-            // non navigation related functionality
-            match key_event.code {
-                KeyCode::Char('q') | KeyCode::Esc => {
-                    self.screen = Screen::Terminal(TerminalScreen::new());
-                }
-                _ => {}
-            }
-        }
-    }
 
     fn handle_help_keys(&mut self, key_event: KeyEvent) {
         match key_event.code {
@@ -163,9 +160,7 @@ impl App {
     }
 
     // App Specific Functionality.
-    fn exit(&mut self) {
-        // TODO: flush cache to prevent unwanted changes being saved in future sessions
-
+    pub fn exit(&mut self) {
         self.exit = true;
     }
 }
