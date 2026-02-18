@@ -6,6 +6,7 @@ use crate::{
         table::TableView,
     },
 };
+use color_eyre::Section;
 use crossterm::event::{KeyCode, KeyEvent};
 
 #[derive(Debug)]
@@ -57,6 +58,7 @@ fn execute_command(app: &mut App) -> Option<Screen> {
             }
             Err(e) => {
                 terminal_screen.add_log_line(format!("Error: {}", e));
+                app.notifications.error(e);
                 terminal_screen.add_command();
                 None
             }
@@ -68,6 +70,7 @@ fn execute_command(app: &mut App) -> Option<Screen> {
             }
             Err(e) => {
                 terminal_screen.add_log_line(format!("Error: {}", e));
+                app.notifications.error(e);
             }
         }
         terminal_screen.add_command();

@@ -1,3 +1,4 @@
+use color_eyre::Report;
 use std::time::{Duration, Instant};
 
 const TIME_LIMIT: Duration = Duration::from_secs(5);
@@ -13,6 +14,14 @@ impl Notification {
         Notification {
             title: title.to_string(),
             message: message.to_string(),
+            time_stamp: Instant::now(),
+        }
+    }
+
+    fn new_error(error: Report) -> Self {
+        Notification {
+            title: "Error".to_string(),
+            message: error.to_string(),
             time_stamp: Instant::now(),
         }
     }
@@ -33,6 +42,10 @@ impl NotificationList {
 
     pub fn notify(&mut self, title: &str, message: &str) {
         self.list.push(Notification::new(title, message))
+    }
+
+    pub fn error(&mut self, error: Report) {
+        self.list.push(Notification::new_error(error))
     }
 
     pub fn remove_expired(&mut self) {
