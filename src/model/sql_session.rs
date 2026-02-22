@@ -1,5 +1,10 @@
 use color_eyre::eyre::{Result, eyre};
 use rusqlite::{Connection, types::ValueRef};
+use substring::Substring;
+
+// To avoid excessive memory usage we limit the size of select to SELECT_BATCH_SIZE
+// when querying a database the data itself is chunked into "pages" that are then
+// swithced between in the table view
 
 pub struct SqlSession {
     connection: Connection,
@@ -88,6 +93,49 @@ impl SqlSession {
         }
 
         Ok(result_rows)
+    }
+
+    pub fn get_selection_size(&self, query: String) -> Result<u32> {
+        if query.is_empty() {
+            return Err(eyre!("Query string is empty"));
+        }
+
+        // replace columns with count(*)
+
+        // get the end of select
+
+        let end_columns_key_word = "FROM";
+
+        let mut end_columns_index = 0;
+
+        // find start of from
+        for i in 0..(query.len() - end_columns_key_word.len()) {
+            if query
+                .substring(i, end_columns_key_word.len())
+                .eq_ignore_ascii_case(end_columns_key_word)
+            {
+                end_columns_index = i + end_columns_key_word.len();
+            }
+        }
+
+        if end_columns_index == 0 {
+            return Err(eyre!(
+                "Failed to find information limiting the query size (e.g Tables, WHERE)"
+            ));
+        }
+
+        // replace with count(*)
+
+        let count_query = format!(
+            " SELECT COUNT(*) { }",
+            query.substring(end_columns_index, query.len() - 1),
+        );
+
+        // execute and cast
+        let results = self
+            .connection
+            .query_one(&count_query, [], |row| Ok(row.get::<usize, u32>(0)?))?;
+        Ok(results)
     }
 
     pub fn execute(&mut self, query: &str) -> Result<usize> {
